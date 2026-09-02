@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ExerciseResponse } from "../api/exercises/route";
-import ExerciseFilters from "../components/exercisesFilter";
-import Pagination from "../components/pagination";
+import ExerciseFilters from "./exercisesFilter";
+import Pagination from "./pagination";
+import ExercisesList from "./exercisesList";
+import WorkoutPreview from "./preview";
 
 // This is the main page component (Server Component)
 export default async function Page({
@@ -57,6 +59,7 @@ export default async function Page({
           Home
         </Link>
       </div>
+      <WorkoutPreview />
 
       {/* Filters Component */}
       <ExerciseFilters />
@@ -77,41 +80,7 @@ export default async function Page({
           <p className="text-gray-400">Try adjusting your search criteria.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {exercises.map((exercise) => (
-            <Link
-              key={exercise._id}
-              href={`/exercises/${exercise.id}`}
-              className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
-            >
-              <div className="p-6">
-                <h2 className="text-xl font-semibold mb-2">{exercise.name}</h2>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Level:</span>
-                    <span className="capitalize">{exercise.level}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Force:</span>
-                    <span className="capitalize">{exercise.force}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Mechanic:</span>
-                    <span className="capitalize">{exercise.mechanic}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Equipment:</span>
-                    <span>{exercise.equipment}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Muscles:</span>
-                    <span>{exercise.primaryMuscles.join(", ")}</span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <ExercisesList exercises={exercises} />
       )}
 
       {/* Pagination */}

@@ -122,10 +122,9 @@ export default function ExerciseFilters({
       }
     });
 
-    console.log("params", params);
-
     // Navigate to the current page with filters
     router.push(`${pathname}?${params.toString()}`);
+    // console.log("params", pathname);
   };
 
   const handleClearFilters = () => {

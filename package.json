@@ -6,25 +6,42 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage",
+    "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand",
+    "test:debug:watch": "node --inspect-brk ./node_modules/.bin/jest --runInBand --watch",
+    "test:debug:coverage": "node --inspect-brk ./node_modules/.bin/jest --runInBand --coverage",
+    "test:debug:ci": "node --inspect-brk ./node_modules/.bin/jest --runInBand --ci --coverage"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "lodash.debounce": "^4.0.8",
     "mongoose": "^9.9.4",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
     "@types/bcryptjs": "^2.4.6",
+    "@types/jest": "^30.0.0",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/mongoose": "^5.11.96",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "jest": "^30.5.1",
+    "jest-environment-jsdom": "^30.5.1",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
