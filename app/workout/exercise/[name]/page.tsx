@@ -7,6 +7,8 @@ import Link from "next/link";
 import SetInput from "./SetInput";
 import SettingsModal from "./SettingsModal";
 import Controls from "./Controls";
+import ExerciseHistory from "./History";
+import Stopwatch from "./Stopwatch";
 
 export default function ExercisePage() {
   const params = useParams();
@@ -55,6 +57,8 @@ export default function ExercisePage() {
 
       {/* Controls */}
       <Controls exerciseId={exercise.id} />
+      <ExerciseHistory exerciseName={exercise.name} />
+      <Stopwatch />
     </div>
   );
 }

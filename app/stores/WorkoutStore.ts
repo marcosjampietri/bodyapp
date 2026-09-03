@@ -24,6 +24,7 @@ export interface WorkoutSet {
 
 export interface Workout {
   id: string;
+  _id?: string; // Optional MongoDB ID
   name: string;
   date: Date;
   exercises: WorkoutExercise[];
@@ -57,6 +58,7 @@ interface WorkoutState {
     setId: string,
     data: Partial<WorkoutSet>,
   ) => void;
+
   deleteAllExercises: () => void;
   completeExercise: (exerciseId: string) => void;
   completeWorkout: () => void;
@@ -120,6 +122,7 @@ export const useWorkoutStore = create<WorkoutState>()(
       createWorkout: (name: string) => {
         const workout: Workout = {
           id: generateId(),
+          _id: undefined,
           name: name || `Workout ${new Date().toLocaleDateString()}`,
           date: new Date(),
           exercises: [],

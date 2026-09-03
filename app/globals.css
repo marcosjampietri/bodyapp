@@ -33,3 +33,99 @@ body {
     font-family: var(--font-montserrat);
   }
 }
+
+/* Custom Calendar Styles */
+.react-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: inherit;
+}
+
+.react-calendar__navigation {
+  padding: 0.5rem 0;
+}
+
+.react-calendar__navigation button {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.react-calendar__navigation button:hover {
+  background-color: #e5e7eb !important;
+}
+
+.react-calendar__navigation button:disabled {
+  opacity: 0.3;
+}
+
+.react-calendar__month-view__weekdays {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  padding: 0.5rem 0;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+}
+
+.react-calendar__tile {
+  height: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.react-calendar__tile:hover {
+  background-color: #f3f4f6 !important;
+}
+
+.react-calendar__tile--active {
+  background-color: #06b6d4 !important;
+  color: white !important;
+}
+
+.react-calendar__tile--active:hover {
+  background-color: #0891b2 !important;
+}
+
+.react-calendar__tile--now {
+  background-color: #e5e7eb !important;
+}
+
+.react-calendar__tile--now.react-calendar__tile--active {
+  background-color: #06b6d4 !important;
+  color: white !important;
+}
+
+.react-calendar__tile--hasActive {
+  background-color: #06b6d4 !important;
+  color: white !important;
+}
+
+/* Marked dates with workouts */
+.workout-day {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+  font-weight: 600 !important;
+}
+
+.workout-day:hover {
+  background-color: #d1fae5 !important;
+}
+
+.workout-day.react-calendar__tile--active {
+  background-color: #06b6d4 !important;
+  color: white !important;
+}

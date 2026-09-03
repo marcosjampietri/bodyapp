@@ -92,6 +92,7 @@ export default function SettingsModal({
             <span className="text-sm text-cyan-300 font-bold">BAR WEIGHT:</span>
             <input
               type="text"
+              data-testid="bar-weight-input"
               value={barWeight}
               onChange={(e) => {
                 if (!/^\d*$/.test(e.target.value)) return;
