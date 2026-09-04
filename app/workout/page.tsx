@@ -1,268 +1,221 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useWorkoutStore } from "../stores/WorkoutStore";
-import Link from "next/link";
-import { useState } from "react";
+import { useTheme } from "../context/ThemeContext";
+import { ThemeToggle } from "../components/theme/ThemeToggle";
+import {
+  Shield,
+  User,
+  Flame,
+  Target,
+  AlertTriangle,
+  Plus,
+  ChevronRight,
+  Check,
+  Circle,
+} from "lucide-react";
+import { Card } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
+import { Badge } from "../components/ui/Badge";
+import { ProgressBar } from "../components/ui/ProgressBar";
+import ExerciseList from "./components/ExerciseList";
+import WorkoutControls from "./components/WorkoutControls";
+import { useRouter } from "next/navigation";
 
 export default function WorkoutPage() {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const { currentWorkout } = useWorkoutStore();
+
   const router = useRouter();
-  const { currentWorkout, completeWorkout, cancelWorkout } = useWorkoutStore();
-  const [moveModalOpen, setMoveModalOpen] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
 
   const exercises = currentWorkout?.exercises || [];
   const hasExercises = exercises.length > 0;
 
-  // Check if all exercises are complete
-  const allComplete = exercises.every((ex) =>
-    ex.sets.every((s) => Number(s.reps) > 0 && Number(Number(s.weight)) > 0),
-  );
-
-  const completedExercises = exercises.filter((ex) =>
-    ex.sets.some((s) => Number(s.reps) > 0 && Number(Number(s.weight)) > 0),
-  );
-
-  const handleFinish = () => {
-    if (allComplete) {
-      completeWorkout();
-      setShowModal(false);
-    } else {
-      setShowAlert(true);
-    }
-  };
-
-  const handleForceFinish = () => {
-    if (completedExercises.length > 0) {
-      completeWorkout();
-      setShowModal(false);
-      setShowAlert(false);
-    } else {
-      alert("Nothing to save!");
-    }
-  };
-
-  // Get completion status for each exercise
-  const getExerciseStatus = (exerciseId: string) => {
-    const exercise = exercises.find((e) => e.id === exerciseId);
-    if (!exercise) return { completed: false, hasData: false };
-
-    const hasData = exercise.sets.some(
-      (s) => Number(s.reps) > 0 && Number(Number(s.weight)) > 0,
-    );
-    const allComplete = exercise.sets.every(
-      (s) => Number(s.reps) > 0 && Number(Number(s.weight)) > 0,
-    );
-
-    return { completed: allComplete, hasData };
-  };
+  const completed = exercises.filter((ex) =>
+    ex.sets.every((s) => Number(s.weight) > 0 && s.reps > 0),
+  ).length;
+  const total = exercises.length;
+  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <div className="flex flex-col h-[85vh] max-w-md mx-auto p-4">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <Link href="/" className="text-white/70 text-sm">
-          ← Home
-        </Link>
-        <span className="text-white/50 text-xs">⚡ Workout</span>
-        <button className="text-white/70 text-sm">👤</button>
-      </div>
-
-      {/* Save/Clear Controls */}
-      {hasExercises && (
-        <div className="flex justify-between mb-4 gap-2">
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex-1 bg-cyan-500 text-black font-bold py-2 rounded-md hover:bg-cyan-400 transition text-sm"
-          >
-            SAVE
-          </button>
-          <button
-            onClick={() => {
-              if (confirm("Clear all exercises?")) {
-                cancelWorkout();
-              }
-            }}
-            className="flex-1 bg-red-600 text-white font-bold py-2 rounded-md hover:bg-red-700 transition text-sm"
-          >
-            CLEAR
-          </button>
-        </div>
-      )}
-
-      {/* Exercise List */}
-      <div className="flex-1 overflow-y-auto space-y-1">
-        {exercises.map((exercise) => {
-          const { completed, hasData } = getExerciseStatus(exercise.id);
-          const reps = exercise.sets.map((s) => s.reps);
-          const minReps = Math.min(...reps);
-          const maxReps = Math.max(...reps);
-
-          return (
-            <div key={exercise.id} className="flex items-center gap-2">
-              {/* Icon to open move modal */}
-              <button
-                onClick={() => setMoveModalOpen(exercise.id)}
-                className="w-10 h-10 flex items-center justify-center border border-gray-500 rounded bg-gray-800/50"
-              >
-                {completed ? (
-                  <span className="text-green-400 text-lg">✓</span>
-                ) : hasData ? (
-                  <span className="text-yellow-400 text-lg">◉</span>
-                ) : (
-                  <span className="text-gray-500 text-lg">○</span>
-                )}
-              </button>
-
-              {/* Exercise Row */}
-              <Link
-                href={`/workout/exercise/${exercise.id}`}
-                className={`
-                  flex-1 flex items-center justify-between p-3 rounded-md border border-gray-600
-                  ${completed ? "bg-green-900/30 border-green-500" : "bg-gray-800/50"}
-                  ${hasData && !completed ? "border-yellow-500/50" : ""}
-                  hover:bg-gray-700/50 transition
-                `}
-              >
-                <span className="text-white text-sm font-medium truncate flex-1">
-                  {exercise.name}
-                </span>
-                <span className="text-white/70 text-sm mx-1">
-                  {exercise.sets.length}
-                </span>
-                <span className="text-white/40 text-xs">×</span>
-                <span className="text-white/70 text-sm w-16 text-right">
-                  {minReps}
-                  {maxReps !== minReps ? ` - ${maxReps}` : ""}
-                </span>
-                <span className="text-cyan-400 ml-2">›</span>
-              </Link>
+    <div className={`min-h-screen ${isDark ? "bg-black" : "bg-white"}`}>
+      <div className="max-w-md mx-auto w-full px-4 py-6">
+        {/* Header */}
+        <div
+          className={`flex justify-between items-center mb-8 border-b pb-4 ${
+            isDark ? "border-orange-900/20" : "border-orange-200"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-sm flex items-center justify-center ${
+                isDark
+                  ? "bg-linear-to-br from-red-600 to-orange-500 shadow-lg shadow-orange-600/30"
+                  : "bg-red-600 shadow-md shadow-orange-200"
+              }`}
+            >
+              <Shield className="w-5 h-5 text-white" />
             </div>
-          );
-        })}
-      </div>
-
-      {/* Move Modal */}
-      {moveModalOpen && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-gray-700 rounded-lg p-2 min-w-50">
-            <div className="flex flex-col">
-              {(() => {
-                const currentIndex = exercises.findIndex(
-                  (e) => e.id === moveModalOpen,
-                );
-                return (
-                  <>
-                    <button
-                      onClick={() => {
-                        if (currentIndex > 0) {
-                          const { updateExerciseOrder } =
-                            useWorkoutStore.getState();
-                          updateExerciseOrder(moveModalOpen, currentIndex - 1);
-                        }
-                        setMoveModalOpen(null);
-                      }}
-                      className="flex items-center justify-between px-4 py-2 hover:bg-gray-600 rounded"
-                    >
-                      <span className="text-white text-sm">MOVE ABOVE</span>
-                      <span className="text-white text-lg">↑</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (currentIndex < exercises.length - 1) {
-                          const { updateExerciseOrder } =
-                            useWorkoutStore.getState();
-                          updateExerciseOrder(moveModalOpen, currentIndex + 1);
-                        }
-                        setMoveModalOpen(null);
-                      }}
-                      className="flex items-center justify-between px-4 py-2 hover:bg-gray-600 rounded"
-                    >
-                      <span className="text-white text-sm">MOVE BELOW</span>
-                      <span className="text-white text-lg">↓</span>
-                    </button>
-                  </>
-                );
-              })()}
+            <div>
+              <h1
+                className={`text-xl font-black tracking-tight ${
+                  isDark
+                    ? "bg-linear-to-r from-red-500 to-orange-400 bg-clip-text text-transparent"
+                    : "text-red-600"
+                }`}
+              >
+                IRON
+              </h1>
+              <p className="text-[10px] text-zinc-500 tracking-widest uppercase">
+                Pain is progress
+              </p>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Save Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-cyan-400 w-[90%] max-w-sm p-6 rounded-lg">
-            {!showAlert ? (
-              <div className="text-center">
-                <button
-                  onClick={handleFinish}
-                  className="w-full bg-white text-black font-bold py-3 rounded-md mb-2"
-                >
-                  FINISH WORKOUT
-                </button>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="w-full bg-black/20 text-white font-bold py-3 rounded-md"
-                >
-                  CANCEL
-                </button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-black font-bold mb-4">
-                  Your Workout contains incomplete exercises. Finish Workout
-                  deleting empty data?
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleForceFinish}
-                    className="flex-1 bg-white text-black font-bold py-3 rounded-md"
-                  >
-                    OK
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowModal(false);
-                      setShowAlert(false);
-                    }}
-                    className="flex-1 bg-black/20 text-white font-bold py-3 rounded-md"
-                  >
-                    IGNORE
-                  </button>
-                </div>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              className={`w-10 h-10 rounded-sm flex items-center justify-center transition ${
+                isDark
+                  ? "bg-linear-to-br from-zinc-900 to-zinc-950 border border-orange-900/30 hover:from-orange-950 hover:to-zinc-900"
+                  : "bg-white border border-orange-200 hover:bg-orange-50 hover:border-orange-300"
+              }`}
+            >
+              <User
+                className={`w-5 h-5 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}
+              />
+            </button>
           </div>
         </div>
-      )}
 
-      {/* Bottom Buttons */}
-      <div className="mt-4 space-y-2">
-        {hasExercises ? (
-          <button
-            onClick={() => router.push("/build")}
-            className="w-full bg-cyan-500 text-black font-bold py-3 rounded-md hover:bg-cyan-400 transition"
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <Card variant="stats">
+            <div className="flex items-center gap-2 mb-1">
+              <Flame
+                className={`w-4 h-4 ${
+                  isDark
+                    ? "text-orange-500 drop-shadow-[0_0_8px_rgba(251,146,60,0.4)]"
+                    : "text-orange-500"
+                }`}
+              />
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                Streak
+              </p>
+            </div>
+            <p
+              className={`text-2xl font-black ${
+                isDark
+                  ? "bg-linear-to-r from-red-500 to-orange-400 bg-clip-text text-transparent"
+                  : "text-red-600"
+              }`}
+            >
+              14
+            </p>
+            <p className="text-[10px] text-zinc-600 uppercase">Days of war</p>
+          </Card>
+
+          <Card variant="stats">
+            <div className="flex items-center gap-2 mb-1">
+              <Target
+                className={`w-4 h-4 ${
+                  isDark
+                    ? "text-orange-500 drop-shadow-[0_0_8px_rgba(251,146,60,0.4)]"
+                    : "text-orange-500"
+                }`}
+              />
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">
+                Volume
+              </p>
+            </div>
+            <p
+              className={`text-2xl font-black ${
+                isDark
+                  ? "bg-linear-to-r from-red-500 to-orange-400 bg-clip-text text-transparent"
+                  : "text-red-600"
+              }`}
+            >
+              18.4k
+            </p>
+            <p className="text-[10px] text-zinc-600 uppercase">Total kg</p>
+          </Card>
+        </div>
+
+        {/* Progress Banner */}
+        <div
+          className={`p-3 mb-6 flex items-center gap-3 rounded-sm border ${
+            isDark
+              ? "bg-linear-to-r from-orange-950/70 via-red-900/40 to-orange-950/70 border-orange-800/30 shadow-lg shadow-orange-900/20"
+              : "bg-orange-50 border-orange-200 shadow-sm"
+          }`}
+        >
+          <AlertTriangle
+            className={`w-5 h-5 shrink-0 ${
+              isDark
+                ? "text-orange-500 drop-shadow-[0_0_10px_rgba(251,146,60,0.5)]"
+                : "text-orange-500"
+            }`}
+          />
+          <p
+            className={`text-xs font-medium uppercase tracking-wider ${
+              isDark
+                ? "text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.3)]"
+                : "text-orange-600"
+            }`}
           >
-            + Add Exercise
-          </button>
-        ) : (
-          <>
-            <button
-              onClick={() => router.push("/build")}
-              className="w-full bg-cyan-500 text-black font-bold py-3 rounded-md hover:bg-cyan-400 transition"
-            >
-              Build New Workout
-            </button>
-            <button
-              onClick={() => router.push("/history")}
-              className="w-full bg-gray-700 text-white font-bold py-3 rounded-md hover:bg-gray-600 transition"
-            >
-              Load from History
-            </button>
-          </>
+            {hasExercises ? "Destroy every set" : "Build your workout"}
+          </p>
+          <span
+            className={`ml-auto text-xs font-black ${
+              isDark
+                ? "text-orange-500 drop-shadow-[0_0_10px_rgba(251,146,60,0.5)]"
+                : "text-orange-500"
+            }`}
+          >
+            {progress}%
+          </span>
+        </div>
+
+        {/* Progress Bar */}
+        {hasExercises && (
+          <div className="mb-6">
+            <ProgressBar value={progress} />
+            <div className="flex justify-between mt-1">
+              <span
+                className={`text-[10px] ${isDark ? "text-zinc-500" : "text-zinc-400"}`}
+              >
+                {completed} of {total} exercises
+              </span>
+              <span
+                className={`text-[10px] ${isDark ? "text-zinc-500" : "text-zinc-400"}`}
+              >
+                {progress}% complete
+              </span>
+            </div>
+          </div>
         )}
+
+        {/* Exercise List */}
+        <ExerciseList />
+
+        {/* Add Exercise */}
+        <div className="my-6">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            className="flex items-center justify-center gap-2"
+            onClick={() => {
+              router.push("/build");
+            }}
+          >
+            <Plus className="w-4 h-4" />
+            {hasExercises ? "Add Exercise" : "Build New Workout"}
+          </Button>
+        </div>
+
+        {/* Controls */}
+        <WorkoutControls />
       </div>
     </div>
   );

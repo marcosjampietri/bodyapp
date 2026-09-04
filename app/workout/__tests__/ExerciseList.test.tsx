@@ -1,10 +1,15 @@
 import { render, screen } from "@testing-library/react";
-import ExerciseList from "../ExerciseList";
+import ExerciseList from "../components/ExerciseList";
 import { useWorkoutStore } from "@/app/stores/WorkoutStore";
+import { ThemeProvider } from "@/app/context/ThemeContext";
 
 jest.mock("@/app/stores/WorkoutStore");
 
 const mockCompleteExercise = jest.fn();
+
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+};
 
 describe("ExerciseList", () => {
   beforeEach(() => {
@@ -41,7 +46,7 @@ describe("ExerciseList", () => {
       completeExercise: mockCompleteExercise,
     });
 
-    render(<ExerciseList />);
+    renderWithTheme(<ExerciseList />);
     expect(screen.getByText("Bench Press")).toBeInTheDocument();
     expect(screen.getByText("Squat")).toBeInTheDocument();
   });
@@ -52,11 +57,11 @@ describe("ExerciseList", () => {
       completeExercise: mockCompleteExercise,
     });
 
-    render(<ExerciseList />);
-    expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText("8 - 10")).toBeInTheDocument();
-    expect(screen.getByText("1")).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
+    renderWithTheme(<ExerciseList />);
+    expect(screen.getByText(/2\s+sets/)).toBeInTheDocument();
+    expect(screen.getByText(/8\s*-\s*10\s+reps/)).toBeInTheDocument();
+    expect(screen.getByText(/1\s+sets/)).toBeInTheDocument();
+    expect(screen.getByText(/5\s+reps/)).toBeInTheDocument();
   });
 
   test("displays completed status correctly", () => {
@@ -71,8 +76,8 @@ describe("ExerciseList", () => {
       completeExercise: mockCompleteExercise,
     });
 
-    render(<ExerciseList />);
-    expect(screen.getByText("✓")).toBeInTheDocument();
+    renderWithTheme(<ExerciseList />);
+    expect(screen.getByText("✓ Done")).toBeInTheDocument();
   });
 
   test("renders empty div when no current workout", () => {
@@ -81,7 +86,7 @@ describe("ExerciseList", () => {
       completeExercise: mockCompleteExercise,
     });
 
-    const { container } = render(<ExerciseList />);
+    const { container } = renderWithTheme(<ExerciseList />);
     // Your component returns <div className="space-y-1"></div> when empty
     expect(container.firstChild).toHaveClass("space-y-1");
     expect(container.firstChild?.childNodes.length).toBe(0);
@@ -93,7 +98,7 @@ describe("ExerciseList", () => {
       completeExercise: mockCompleteExercise,
     });
 
-    const { container } = render(<ExerciseList />);
+    const { container } = renderWithTheme(<ExerciseList />);
     expect(container.firstChild).toHaveClass("space-y-1");
     expect(container.firstChild?.childNodes.length).toBe(0);
   });

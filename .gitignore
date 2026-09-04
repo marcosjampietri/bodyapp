@@ -1,5 +1,11 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# ui tests
+app/workout-exercise-mock
+app/workout-mock
+app/theme-test
+app/ui-test
+
 # dependencies
 /node_modules
 /.pnp

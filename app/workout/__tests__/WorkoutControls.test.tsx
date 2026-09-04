@@ -1,11 +1,16 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import WorkoutControls from "../WorkoutControls";
+import WorkoutControls from "../components/WorkoutControls";
 import { useWorkoutStore } from "@/app/stores/WorkoutStore";
+import { ThemeProvider } from "@/app/context/ThemeContext";
 
 jest.mock("@/app/stores/WorkoutStore");
 
 const mockCompleteWorkout = jest.fn();
 const mockCancelWorkout = jest.fn();
+
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+};
 
 describe("WorkoutControls", () => {
   beforeEach(() => {
@@ -29,7 +34,7 @@ describe("WorkoutControls", () => {
       cancelWorkout: mockCancelWorkout,
     });
 
-    const { container } = render(<WorkoutControls />);
+    const { container } = renderWithTheme(<WorkoutControls />);
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -40,7 +45,7 @@ describe("WorkoutControls", () => {
       cancelWorkout: mockCancelWorkout,
     });
 
-    render(<WorkoutControls />);
+    renderWithTheme(<WorkoutControls />);
     expect(screen.getByText("SAVE")).toBeInTheDocument();
     expect(screen.getByText("CLEAR")).toBeInTheDocument();
   });
@@ -52,7 +57,7 @@ describe("WorkoutControls", () => {
       cancelWorkout: mockCancelWorkout,
     });
 
-    render(<WorkoutControls />);
+    renderWithTheme(<WorkoutControls />);
 
     // Click SAVE to open modal
     fireEvent.click(screen.getByText("SAVE"));
@@ -73,7 +78,7 @@ describe("WorkoutControls", () => {
       cancelWorkout: mockCancelWorkout,
     });
 
-    render(<WorkoutControls />);
+    renderWithTheme(<WorkoutControls />);
     fireEvent.click(screen.getByText("CLEAR"));
     expect(mockCancelWorkout).toHaveBeenCalled();
 
@@ -90,7 +95,7 @@ describe("WorkoutControls", () => {
       cancelWorkout: mockCancelWorkout,
     });
 
-    render(<WorkoutControls />);
+    renderWithTheme(<WorkoutControls />);
     fireEvent.click(screen.getByText("CLEAR"));
     expect(mockCancelWorkout).not.toHaveBeenCalled();
 

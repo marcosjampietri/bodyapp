@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useWorkoutStore } from "@/app/stores/WorkoutStore";
+import { useWorkoutStore } from "../../stores/WorkoutStore";
+import { useTheme } from "../../context/ThemeContext";
+import { Button } from "../../components/ui/Button";
 
 export default function WorkoutControls() {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const { currentWorkout, completeWorkout, cancelWorkout } = useWorkoutStore();
   const [showModal, setShowModal] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
@@ -11,15 +15,15 @@ export default function WorkoutControls() {
   const exercises = currentWorkout?.exercises || [];
   const hasExercises = exercises.length > 0;
 
-  // Check if all exercises are complete
   const allComplete = exercises.every((ex) =>
-    ex.sets.every((s) => Number(s.reps) > 0 && Number(Number(s.weight)) > 0),
+    ex.sets.every((s) => Number(s.weight) > 0 && s.reps > 0),
   );
 
-  // Get completed exercises (with data)
   const completedExercises = exercises.filter((ex) =>
-    ex.sets.some((s) => Number(s.reps) > 0 && Number(Number(s.weight)) > 0),
+    ex.sets.some((s) => Number(s.weight) > 0 && s.reps > 0),
   );
+
+  if (!hasExercises) return null;
 
   const handleFinish = () => {
     if (allComplete) {
@@ -32,13 +36,7 @@ export default function WorkoutControls() {
 
   const handleForceFinish = () => {
     if (completedExercises.length > 0) {
-      // Save only completed exercises
-      const workout = {
-        ...currentWorkout!,
-        exercises: completedExercises,
-        completed: true,
-      };
-      completeWorkout(); // This will save to history
+      completeWorkout();
       setShowModal(false);
       setShowAlert(false);
     } else {
@@ -46,71 +44,90 @@ export default function WorkoutControls() {
     }
   };
 
-  if (!hasExercises) return null;
-
   return (
     <>
-      {/* Buttons */}
-      <div className="flex justify-between mb-4 gap-2">
-        <button
+      <div className="flex gap-2 mb-6">
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
           onClick={() => setShowModal(true)}
-          className="flex-1 bg-cyan-500 text-black font-bold py-2 rounded-md hover:bg-cyan-400 transition text-sm"
         >
           SAVE
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="danger"
+          size="lg"
+          fullWidth
           onClick={() => {
             if (confirm("Clear all exercises?")) {
               cancelWorkout();
             }
           }}
-          className="flex-1 bg-red-600 text-white font-bold py-2 rounded-md hover:bg-red-700 transition text-sm"
         >
           CLEAR
-        </button>
+        </Button>
       </div>
 
-      {/* Save Modal */}
+      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-cyan-400 w-[90%] max-w-sm p-6 rounded-lg">
+          <div
+            className={`w-[90%] max-w-sm p-6 rounded-sm border ${
+              isDark
+                ? "bg-zinc-900 border-orange-800/30 shadow-lg shadow-orange-900/20"
+                : "bg-white border-orange-200 shadow-lg"
+            }`}
+          >
             {!showAlert ? (
-              <div className="text-center">
-                <button
+              <div className="space-y-2">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
                   onClick={handleFinish}
-                  className="w-full bg-white text-black font-bold py-3 rounded-md mb-2"
                 >
                   FINISH WORKOUT
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
                   onClick={() => setShowModal(false)}
-                  className="w-full bg-black/20 text-white font-bold py-3 rounded-md"
                 >
                   CANCEL
-                </button>
+                </Button>
               </div>
             ) : (
-              <div className="text-center">
-                <p className="text-black font-bold mb-4">
+              <div className="space-y-4">
+                <p
+                  className={`text-center text-sm font-bold ${
+                    isDark ? "text-white" : "text-zinc-800"
+                  }`}
+                >
                   Your Workout contains incomplete exercises. Finish Workout
                   deleting empty data?
                 </p>
                 <div className="flex gap-2">
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
                     onClick={handleForceFinish}
-                    className="flex-1 bg-white text-black font-bold py-3 rounded-md"
                   >
                     OK
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    fullWidth
                     onClick={() => {
                       setShowModal(false);
                       setShowAlert(false);
                     }}
-                    className="flex-1 bg-black/20 text-white font-bold py-3 rounded-md"
                   >
                     IGNORE
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

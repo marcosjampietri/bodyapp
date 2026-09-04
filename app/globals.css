@@ -16,6 +16,13 @@
   }
 }
 
+@theme {
+  --font-montserrat: var(--font-montserrat);
+  --font-michroma: var(--font-michroma);
+}
+
+/* ... rest of your styles */
+
 body {
   background: var(--background);
   color: var(--foreground);
