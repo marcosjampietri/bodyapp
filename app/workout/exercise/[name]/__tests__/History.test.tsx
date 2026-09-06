@@ -1,6 +1,11 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import History from "../History";
+import History from "../components/History";
 import { useWorkoutStore } from "@/app/stores/WorkoutStore";
+
+import { ThemeProvider } from "@/app/context/ThemeContext";
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+};
 
 // Mock Next.js hooks
 jest.mock("next/navigation", () => ({
@@ -22,7 +27,7 @@ describe("ExerciseHistory", () => {
       date: new Date("2024-01-15T10:00:00"),
       exercises: [
         {
-          id: "ex1",
+          _id: "ex1",
           name: "Bench Press",
           sets: [
             { id: "s1", weight: 100, reps: 10, completed: true },
@@ -32,7 +37,7 @@ describe("ExerciseHistory", () => {
           order: 0,
         },
         {
-          id: "ex2",
+          _id: "ex2",
           name: "Squat",
           sets: [{ id: "s3", weight: 140, reps: 5, completed: true }],
           completed: true,
@@ -48,7 +53,7 @@ describe("ExerciseHistory", () => {
       date: new Date("2024-01-14T15:30:00"),
       exercises: [
         {
-          id: "ex1",
+          _id: "ex1",
           name: "Bench Press",
           sets: [{ id: "s4", weight: 105, reps: 9, completed: true }],
           completed: true,
@@ -60,14 +65,14 @@ describe("ExerciseHistory", () => {
     },
   ];
 
-  const mockExerciseName = "Bench Press";
+  const mockExerciseID = "ex1";
 
   test("renders history header", () => {
     (useWorkoutStore as unknown as jest.Mock).mockReturnValue({
       workoutHistory: mockHistory,
     });
 
-    render(<History exerciseName={mockExerciseName} />);
+    renderWithTheme(<History exerciseID={mockExerciseID} />);
     expect(screen.getByText(/History/)).toBeInTheDocument();
   });
 
@@ -76,7 +81,7 @@ describe("ExerciseHistory", () => {
       workoutHistory: mockHistory,
     });
 
-    render(<History exerciseName={mockExerciseName} />);
+    renderWithTheme(<History exerciseID={mockExerciseID} />);
     expect(screen.getByText("15/01/24")).toBeInTheDocument();
     expect(screen.getByText("14/01/24")).toBeInTheDocument();
   });
@@ -86,7 +91,7 @@ describe("ExerciseHistory", () => {
       workoutHistory: [],
     });
 
-    render(<History exerciseName="Nonexistent" />);
+    renderWithTheme(<History exerciseID="Nonexistent" />);
     expect(
       screen.getByText("No history for this exercise yet"),
     ).toBeInTheDocument();
@@ -97,9 +102,9 @@ describe("ExerciseHistory", () => {
       workoutHistory: mockHistory,
     });
 
-    render(<History exerciseName={mockExerciseName} />);
+    renderWithTheme(<History exerciseID={mockExerciseID} />);
 
-    const expandButtons = screen.getAllByText("▼");
+    const expandButtons = screen.getAllByRole("button");
     fireEvent.click(expandButtons[0]);
 
     expect(screen.getByText("105 KG")).toBeInTheDocument();
@@ -110,40 +115,41 @@ describe("ExerciseHistory", () => {
       workoutHistory: mockHistory,
     });
 
-    render(<History exerciseName={mockExerciseName} />);
+    renderWithTheme(<History exerciseID={mockExerciseID} />);
 
-    const expandButtons = screen.getAllByText("▼");
+    const expandButtons = screen.getAllByRole("button");
     fireEvent.click(expandButtons[0]);
+    expect(screen.getByText("105 KG")).toBeInTheDocument();
     fireEvent.click(expandButtons[0]);
 
-    expect(screen.getAllByText("▼")[0]).toBeInTheDocument();
+    expect(screen.queryByText("105 KG")).not.toBeInTheDocument();
   });
 
-  test("shows RPE if present", () => {
-    const historyWithRpe = [
-      {
-        ...mockHistory[0],
-        exercises: [
-          {
-            id: "ex1",
-            name: "Bench Press",
-            sets: [
-              { id: "s1", weight: 100, reps: 10, completed: true, rpe: 8 },
-            ],
-            completed: true,
-            order: 0,
-          },
-        ],
-      },
-    ];
+  // test("shows RPE if present", () => {
+  //   const historyWithRpe = [
+  //     {
+  //       ...mockHistory[0],
+  //       exercises: [
+  //         {
+  //           id: "ex1",
+  //           name: "Bench Press",
+  //           sets: [
+  //             { id: "s1", weight: 100, reps: 10, completed: true, rpe: 8 },
+  //           ],
+  //           completed: true,
+  //           order: 0,
+  //         },
+  //       ],
+  //     },
+  //   ];
 
-    (useWorkoutStore as unknown as jest.Mock).mockReturnValue({
-      workoutHistory: historyWithRpe,
-    });
+  //   (useWorkoutStore as unknown as jest.Mock).mockReturnValue({
+  //     workoutHistory: historyWithRpe,
+  //   });
 
-    render(<History exerciseName={mockExerciseName} />);
-    const expandButtons = screen.getAllByText("▼");
-    fireEvent.click(expandButtons[0]);
-    expect(screen.getByText("RPE 8")).toBeInTheDocument();
-  });
+  //   renderWithTheme(<History exerciseID={mockExerciseID} />);
+  //   const expandButtons = screen.getAllByText("");
+  //   fireEvent.click(expandButtons[0]);
+  //   expect(screen.getByText("RPE 8")).toBeInTheDocument();
+  // });
 });

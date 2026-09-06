@@ -74,6 +74,16 @@ describe("WorkoutStore", () => {
       expect(currentWorkout?.exercises[0].order).toBe(0);
     });
 
+    test("does not add exercise if it already exists in the workout", () => {
+      const { createWorkout, addExercise } = useWorkoutStore.getState();
+      createWorkout("Test Workout");
+      const exercise = createTestExercise("ex1", "Bench Press");
+      addExercise(exercise);
+      addExercise(exercise); // Attempt to add the same exercise again
+      const { currentWorkout } = useWorkoutStore.getState();
+      expect(currentWorkout?.exercises).toHaveLength(1); // Should still be 1
+    });
+
     test("creates workout if none exists", () => {
       const { addExercise } = useWorkoutStore.getState();
       const exercise = createTestExercise("ex1", "Bench Press");
@@ -114,7 +124,7 @@ describe("WorkoutStore", () => {
       createWorkout("Test Workout");
       const exercise = createTestExercise("ex1", "Bench Press");
       addExercise(exercise);
-      addSet("ex1");
+      addSet(exercise._id);
       const { currentWorkout } = useWorkoutStore.getState();
       const exerciseInStore = currentWorkout?.exercises[0];
       expect(exerciseInStore?.sets).toHaveLength(2);
@@ -149,7 +159,8 @@ describe("WorkoutStore", () => {
       addExercise(exercise);
       const { currentWorkout } = useWorkoutStore.getState();
       const setId = currentWorkout?.exercises[0].sets[0].id!;
-      removeSet("ex1", setId);
+      const exerciseID = currentWorkout?.exercises[0]._id!;
+      removeSet(exerciseID, setId);
       const updated = useWorkoutStore.getState();
       expect(updated.currentWorkout?.exercises[0].sets).toHaveLength(0);
     });

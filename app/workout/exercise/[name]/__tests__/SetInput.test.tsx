@@ -1,7 +1,12 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import SetInput from "../SetInput";
+import SetInput from "../components/SetInput";
 import { useWorkoutStore } from "../../../../stores/WorkoutStore";
+
+import { ThemeProvider } from "@/app/context/ThemeContext";
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+};
 
 // Mock the store
 jest.mock("../../../../stores/WorkoutStore");
@@ -39,7 +44,7 @@ describe("SetInput", () => {
   });
 
   test("renders all sets", () => {
-    render(<SetInput exerciseId="123" />);
+    renderWithTheme(<SetInput exerciseId="123" />);
 
     // Check if set numbers are rendered
     expect(screen.getByText("1")).toBeInTheDocument();
@@ -47,15 +52,10 @@ describe("SetInput", () => {
   });
 
   test("allows editing empty set", () => {
-    render(<SetInput exerciseId="123" />);
+    renderWithTheme(<SetInput exerciseId="123" />);
 
-    // Get ALL inputs with placeholder "0"
-    const allInputs = screen.getAllByPlaceholderText("0");
-
-    // For a set, the order is: [repsInput, weightInput]
-    // So repsInputs[0] = reps, repsInputs[1] = weight
-    const repsInput = allInputs[0];
-    const weightInput = allInputs[1];
+    const repsInput = screen.getAllByPlaceholderText("Reps")[0];
+    const weightInput = screen.getAllByPlaceholderText("Weight")[0];
 
     // Type in reps
     fireEvent.change(repsInput, { target: { value: "12" } });
@@ -76,10 +76,9 @@ describe("SetInput", () => {
   });
 
   test("prevents multiple dots in weight", () => {
-    render(<SetInput exerciseId="123" />);
+    renderWithTheme(<SetInput exerciseId="123" />);
 
-    const weightInputs = screen.getAllByPlaceholderText("0");
-    const firstWeightInput = weightInputs[0];
+    const firstWeightInput = screen.getAllByPlaceholderText("Weight")[0];
 
     // Try to type "1.2.3"
     fireEvent.change(firstWeightInput, { target: { value: "1.2.3" } });
@@ -92,10 +91,10 @@ describe("SetInput", () => {
   });
 
   test("prevents letters in input", () => {
-    render(<SetInput exerciseId="123" />);
+    renderWithTheme(<SetInput exerciseId="123" />);
 
-    const repsInputs = screen.getAllByPlaceholderText("0");
-    fireEvent.change(repsInputs[0], { target: { value: "abc" } });
+    const firstRepsInput = screen.getAllByPlaceholderText("Reps")[0];
+    fireEvent.change(firstRepsInput, { target: { value: "abc" } });
 
     // Should not update
     expect(mockUpdateSet).not.toHaveBeenCalled();
@@ -127,11 +126,10 @@ describe("SetInput", () => {
       return selector ? selector(state) : state;
     });
 
-    render(<SetInput exerciseId="123" />);
+    renderWithTheme(<SetInput exerciseId="123" />);
 
-    // Get all inputs - they're in order: [set1_reps, set1_weight, set2_reps, set2_weight]
-    const allInputs = screen.getAllByPlaceholderText("0");
-    const set2RepsInput = allInputs[2]; // Third input is set2 reps
+    const allInputs = screen.getAllByPlaceholderText("—");
+    const set2RepsInput = allInputs[0];
 
     // Should be disabled because set1 is incomplete
     expect(set2RepsInput).toBeDisabled();
@@ -155,7 +153,7 @@ describe("SetInput", () => {
       return selector ? selector(state) : state;
     });
 
-    render(<SetInput exerciseId="123" />);
+    renderWithTheme(<SetInput exerciseId="123" />);
 
     // Should show "= 120" (50*2 + 20)
     expect(screen.getByText("= 120")).toBeInTheDocument();

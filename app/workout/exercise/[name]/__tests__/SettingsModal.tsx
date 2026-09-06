@@ -1,6 +1,11 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import SettingsModal from "../SettingsModal";
+import SettingsModal from "../components/SettingsModal";
 import { useWorkoutStore } from "@/app/stores/WorkoutStore";
+
+import { ThemeProvider } from "@/app/context/ThemeContext";
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+};
 
 jest.mock("@/app/stores/WorkoutStore");
 
@@ -242,7 +247,7 @@ describe("SettingsModal", () => {
       updateExerciseSettings: mockUpdateExerciseSettings,
     });
 
-    render(
+    renderWithTheme(
       <SettingsModal isOpen={true} onClose={jest.fn()} exerciseId="ex1" />,
     );
 

@@ -17,6 +17,7 @@ export interface WorkoutSet {
   id: string;
   weight: number | string;
   reps: number;
+  restTime?: number;
   completed: boolean;
   rpe?: number; // Rate of Perceived Exertion
   notes?: string;
@@ -144,6 +145,12 @@ export const useWorkoutStore = create<WorkoutState>()(
           if (!workout) return; // Safety check
         }
 
+        const exerciseAlreadyIn = workout.exercises.find(
+          (x) => x._id == exercise._id,
+        );
+
+        if (exerciseAlreadyIn) return;
+
         const newExercise: WorkoutExercise = {
           ...exercise,
           sets: [
@@ -223,7 +230,7 @@ export const useWorkoutStore = create<WorkoutState>()(
         if (!currentWorkout) return;
 
         const exercises = currentWorkout.exercises.map((e) => {
-          if (e.id === exerciseId) {
+          if (e._id === exerciseId) {
             return {
               ...e,
               sets: [
@@ -233,6 +240,7 @@ export const useWorkoutStore = create<WorkoutState>()(
                   weight: 0,
                   reps: 0,
                   completed: false,
+                  restTime: 0,
                 },
               ],
             };
@@ -254,7 +262,7 @@ export const useWorkoutStore = create<WorkoutState>()(
         if (!currentWorkout) return;
 
         const exercises = currentWorkout.exercises.map((e) => {
-          if (e.id === exerciseId) {
+          if (e._id === exerciseId) {
             return {
               ...e,
               sets: e.sets.filter((s) => s.id !== setId),
