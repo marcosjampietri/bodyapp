@@ -172,7 +172,7 @@ export default function SetInput({ exerciseId }: SetInputProps) {
                 <input
                   type="text"
                   value={valueWeight}
-                  inputMode="numeric"
+                  inputMode="decimal"
                   maxLength={valueWeight.includes(".") ? 5 : 4}
                   onChange={(e) => {
                     const input = e.target.value;

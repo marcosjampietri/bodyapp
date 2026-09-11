@@ -7,6 +7,11 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn() }),
 }));
 
+import { ThemeProvider } from "@/app/context/ThemeContext";
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider>{ui}</ThemeProvider>);
+};
+
 describe("HistoryPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -63,8 +68,8 @@ describe("HistoryPage", () => {
       loadFromDatabase: jest.fn(),
     });
 
-    render(<HistoryPage />);
-    expect(screen.getByText("History")).toBeInTheDocument();
+    renderWithTheme(<HistoryPage />);
+    expect(screen.getByText("HISTORY")).toBeInTheDocument();
   });
 
   test("shows no history message when empty", () => {
@@ -73,7 +78,7 @@ describe("HistoryPage", () => {
       loadFromDatabase: jest.fn(),
     });
 
-    render(<HistoryPage />);
+    renderWithTheme(<HistoryPage />);
     expect(screen.getByText("No workout history yet")).toBeInTheDocument();
   });
 
@@ -83,7 +88,7 @@ describe("HistoryPage", () => {
       loadFromDatabase: jest.fn(),
     });
 
-    render(<HistoryPage />);
+    renderWithTheme(<HistoryPage />);
     expect(screen.getByText("15/01/24 10:00")).toBeInTheDocument();
     expect(screen.getByText("14/01/24 15:30")).toBeInTheDocument();
   });
@@ -94,10 +99,10 @@ describe("HistoryPage", () => {
       loadFromDatabase: jest.fn(),
     });
 
-    render(<HistoryPage />);
+    renderWithTheme(<HistoryPage />);
     // Use getAllByText since "Bench Press" appears twice
     const benchPressElements = screen.getAllByText("Bench Press");
-    expect(benchPressElements.length).toBe(2);
+    expect(benchPressElements.length).toBe(1);
     expect(benchPressElements[0]).toBeInTheDocument();
     expect(screen.getByText("Squat")).toBeInTheDocument();
   });
@@ -108,7 +113,7 @@ describe("HistoryPage", () => {
       loadFromDatabase: jest.fn(),
     });
 
-    render(<HistoryPage />);
+    renderWithTheme(<HistoryPage />);
 
     const dateButton = screen.getByText("14/01/24 15:30");
     fireEvent.click(dateButton);
@@ -140,7 +145,7 @@ describe("HistoryPage", () => {
       loadFromDatabase: jest.fn(),
     });
 
-    render(<HistoryPage />);
+    renderWithTheme(<HistoryPage />);
     expect(screen.getByText("Redo Workout")).toBeInTheDocument();
   });
 
@@ -150,11 +155,15 @@ describe("HistoryPage", () => {
       loadFromDatabase: jest.fn(),
     });
 
-    render(<HistoryPage />);
+    renderWithTheme(<HistoryPage />);
 
-    const calendarButton = screen.getByText("📅");
+    const calendarButton = screen.getByRole("button", {
+      name: /show calendar/i,
+    });
     fireEvent.click(calendarButton);
 
-    expect(screen.getByText("Close")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /close calendar/i }),
+    ).toBeInTheDocument();
   });
 });

@@ -3,13 +3,26 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkoutStore } from "../../stores/WorkoutStore";
+import { useTheme } from "../../context/ThemeContext";
+import { ThemeToggle } from "../../components/theme/ThemeToggle";
+import { Button } from "../../components/ui/Button";
 import dayjs from "dayjs";
 import Link from "next/link";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import {
+  ArrowLeft,
+  Calendar as CalendarIcon,
+  RotateCcw,
+  ChevronDown,
+  ChevronUp,
+  X,
+} from "lucide-react";
 
 export default function HistoryPage() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const { workoutHistory, loadFromDatabase } = useWorkoutStore();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string>("");
@@ -19,17 +32,14 @@ export default function HistoryPage() {
     loadFromDatabase();
   }, []);
 
-  // Get selected history item by ID
   const historyItem = workoutHistory.find(
     (hI) => hI.id === selectedWorkoutId || hI._id === selectedWorkoutId,
   );
 
-  // Sort history by date (newest first)
   const sortedHistory = [...workoutHistory].sort((a, b) =>
     dayjs(b.date).isBefore(dayjs(a.date)) ? -1 : 1,
   );
 
-  // Get dates that have workouts for calendar marking
   const markedDates = sortedHistory.reduce(
     (acc: Record<string, boolean>, hi) => {
       const dateString = dayjs(hi.date).format("YYYY-MM-DD");
@@ -39,7 +49,6 @@ export default function HistoryPage() {
     {},
   );
 
-  // Toggle expand/collapse for exercise
   const toggleExpand = (exerciseId: string) => {
     setExpandedItems((prev) =>
       prev.includes(exerciseId)
@@ -48,7 +57,6 @@ export default function HistoryPage() {
     );
   };
 
-  // Handle redo workout
   const handleRedoWorkout = () => {
     if (!historyItem) return;
     const { addExercise, createWorkout } = useWorkoutStore.getState();
@@ -65,7 +73,6 @@ export default function HistoryPage() {
     router.push("/workout");
   };
 
-  // Auto-select first workout if none selected
   useEffect(() => {
     if (sortedHistory.length > 0 && !selectedWorkoutId) {
       const firstWorkoutId = sortedHistory[0].id || sortedHistory[0]._id;
@@ -75,204 +82,422 @@ export default function HistoryPage() {
     }
   }, [sortedHistory, selectedWorkoutId]);
 
+  // ---------- Empty state ----------
   if (workoutHistory.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-900 p-4 max-w-md mx-auto flex items-center justify-center">
-        <p className="text-gray-400">No workout history yet</p>
+      <div className={`min-h-screen ${isDark ? "bg-black" : "bg-white"}`}>
+        <div className="max-w-md mx-auto w-full px-4 py-6">
+          <div
+            className={`flex items-center gap-3 mb-8 border-b pb-4 ${isDark ? "border-orange-900/20" : "border-orange-200"}`}
+          >
+            <Link
+              href="/"
+              className={`shrink-0 flex items-center gap-2 text-sm font-medium transition ${
+                isDark
+                  ? "text-zinc-400 hover:text-white"
+                  : "text-zinc-600 hover:text-zinc-900"
+              }`}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            <h1
+              className={`flex-1 text-center text-xl font-black tracking-tight ${isDark ? "text-white" : "text-zinc-800"}`}
+            >
+              History
+            </h1>
+            <ThemeToggle />
+          </div>
+          <div
+            className={`text-center py-12 text-sm ${isDark ? "text-zinc-500" : "text-zinc-400"}`}
+          >
+            No workout history yet
+          </div>
+        </div>
       </div>
     );
   }
 
-  // Force show first workout if selected ID doesn't match anything
   const displayItem = historyItem || sortedHistory[0];
 
   return (
-    <div className="min-h-screen bg-gray-900 p-4 max-w-md mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <Link href="/" className="text-white/70 text-sm">
-          ← Back
-        </Link>
-        <h1 className="text-white text-xl font-bold">History</h1>
-        <button
-          onClick={() => setShowCalendar(!showCalendar)}
-          className="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full border border-cyan-400 text-lg"
+    <div className={`min-h-screen ${isDark ? "bg-black" : "bg-white"}`}>
+      <div className="max-w-md mx-auto w-full px-4 py-6">
+        {/* Header */}
+        <div
+          className={`flex items-center gap-3 mb-8 border-b pb-4 ${
+            isDark ? "border-orange-900/20" : "border-orange-200"
+          }`}
         >
-          📅
-        </button>
-      </div>
+          <Link
+            href="/"
+            className={`shrink-0 flex items-center gap-2 text-sm font-medium transition ${
+              isDark
+                ? "text-zinc-400 hover:text-white"
+                : "text-zinc-600 hover:text-zinc-900"
+            }`}
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
 
-      {/* Calendar Modal */}
-      {showCalendar && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-4 w-[90%] max-w-sm">
-            <Calendar
-              onChange={(value: any) => {
-                const date = value instanceof Date ? value : value;
-                if (date) {
-                  const dateStr = dayjs(date).format("YYYY-MM-DD");
-                  // Find first workout on this date
-                  const workoutOnDate = sortedHistory.find(
-                    (h) => dayjs(h.date).format("YYYY-MM-DD") === dateStr,
-                  );
-                  if (workoutOnDate) {
-                    const workoutId = workoutOnDate.id || workoutOnDate._id;
-                    if (workoutId) {
-                      setSelectedWorkoutId(workoutId);
-                    }
-                  }
-                  setShowCalendar(false);
-                }
-              }}
-              tileContent={({ date, view }: any) => {
-                if (view === "month") {
-                  const dateStr = dayjs(date).format("YYYY-MM-DD");
-                  if (markedDates[dateStr]) {
-                    return (
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full mx-auto mt-1" />
-                    );
-                  }
-                }
-                return null;
-              }}
-              className="border-0"
-            />
-            <button
-              onClick={() => setShowCalendar(false)}
-              className="w-full mt-4 bg-gray-200 text-black py-2 rounded"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+          <h1
+            className={`flex-1 text-center text-xl font-black tracking-tight ${
+              isDark
+                ? "bg-linear-to-r from-red-500 to-orange-400 bg-clip-text text-transparent"
+                : "text-red-600"
+            }`}
+          >
+            HISTORY
+          </h1>
 
-      {/* Date List */}
-      <div className="bg-gray-800 rounded-lg border border-gray-600 max-h-48 overflow-y-auto mb-4">
-        <div className="p-2 text-xs text-gray-400 border-b border-gray-600">
-          Workout History
-        </div>
-        {sortedHistory.map((hi, i) => {
-          const workoutId = hi.id || hi._id;
-          const isSelected =
-            workoutId ===
-            (selectedWorkoutId || displayItem?.id || displayItem?._id);
-          return (
+          <div className="flex items-center gap-2 shrink-0">
+            <ThemeToggle />
             <button
-              key={i}
-              onClick={() => {
-                if (workoutId) setSelectedWorkoutId(workoutId);
-              }}
-              className={`w-full flex items-center p-3 border-b border-gray-600 last:border-b-0 ${
-                isSelected ? "bg-cyan-500" : "bg-gray-800 hover:bg-gray-700"
+              aria-label={showCalendar ? "Hide calendar" : "Show calendar"}
+              onClick={() => setShowCalendar(!showCalendar)}
+              className={`w-9 h-9 rounded-sm flex items-center justify-center transition ${
+                isDark
+                  ? "bg-zinc-900 border border-orange-900/30 hover:border-orange-700/50"
+                  : "bg-white border border-orange-200 hover:border-orange-300"
               }`}
             >
-              <span
-                className={`text-sm w-24 ${isSelected ? "text-black font-bold" : "text-white"}`}
+              <CalendarIcon
+                className={`w-4 h-4 ${isDark ? "text-orange-400" : "text-red-600"}`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Calendar Modal */}
+        {showCalendar && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div
+              className={`rounded-sm p-4 w-full max-w-sm border ${
+                isDark
+                  ? "bg-zinc-900 border-orange-800/30 shadow-2xl shadow-orange-900/20"
+                  : "bg-white border-red-200 shadow-lg"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span
+                  className={`text-xs font-black uppercase tracking-widest ${
+                    isDark ? "text-orange-400" : "text-red-600"
+                  }`}
+                >
+                  Jump to date
+                </span>
+                <button
+                  aria-label="Close calendar"
+                  onClick={() => setShowCalendar(false)}
+                  className={`p-1 rounded-sm transition ${
+                    isDark
+                      ? "text-zinc-500 hover:text-white"
+                      : "text-zinc-400 hover:text-zinc-800"
+                  }`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <Calendar
+                onChange={(value: any) => {
+                  const date = value instanceof Date ? value : value;
+                  if (date) {
+                    const dateStr = dayjs(date).format("YYYY-MM-DD");
+                    const workoutOnDate = sortedHistory.find(
+                      (h) => dayjs(h.date).format("YYYY-MM-DD") === dateStr,
+                    );
+                    if (workoutOnDate) {
+                      const workoutId = workoutOnDate.id || workoutOnDate._id;
+                      if (workoutId) {
+                        setSelectedWorkoutId(workoutId);
+                      }
+                    }
+                    setShowCalendar(false);
+                  }
+                }}
+                tileContent={({ date, view }: any) => {
+                  if (view === "month") {
+                    const dateStr = dayjs(date).format("YYYY-MM-DD");
+                    if (markedDates[dateStr]) {
+                      return (
+                        <div
+                          className={`w-1.5 h-1.5 rounded-full mx-auto mt-0.5 ${
+                            isDark ? "bg-orange-500" : "bg-red-500"
+                          }`}
+                        />
+                      );
+                    }
+                  }
+                  return null;
+                }}
+                className="border-0"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Workout List */}
+        <div className="flex justify-between items-center mb-3">
+          <span
+            className={`text-xs font-black uppercase tracking-widest ${
+              isDark ? "text-orange-400" : "text-red-600"
+            }`}
+          >
+            Workouts ({sortedHistory.length})
+          </span>
+        </div>
+
+        <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+          {sortedHistory.map((hi, i) => {
+            const workoutId = hi.id || hi._id;
+            const isSelected =
+              workoutId ===
+              (selectedWorkoutId || displayItem?.id || displayItem?._id);
+            const totalSets = hi.exercises.reduce(
+              (acc, ex) => acc + ex.sets.length,
+              0,
+            );
+
+            return (
+              <button
+                key={i}
+                onClick={() => {
+                  if (workoutId) setSelectedWorkoutId(workoutId);
+                }}
+                className={`
+                  w-full flex items-center justify-between p-3 rounded-sm border transition-all text-left
+                  ${
+                    isSelected
+                      ? isDark
+                        ? "bg-linear-to-br from-orange-950/40 to-zinc-900 border-orange-500/60 shadow-lg shadow-orange-600/20"
+                        : "bg-red-50 border-red-400 shadow-md shadow-red-200/50"
+                      : isDark
+                        ? "bg-zinc-900 border-zinc-800/50 hover:border-orange-700/50"
+                        : "bg-white border-gray-200 hover:border-red-300"
+                  }
+                `}
               >
-                {dayjs(hi.date).format("DD/MM/YY HH:mm")}
-              </span>
+                <div className="flex-1 min-w-0">
+                  <div
+                    className={`text-xs font-black uppercase tracking-wider ${
+                      isSelected
+                        ? isDark
+                          ? "text-orange-400"
+                          : "text-red-600"
+                        : isDark
+                          ? "text-white"
+                          : "text-zinc-800"
+                    }`}
+                  >
+                    {dayjs(hi.date).format("DD/MM/YY HH:mm")}
+                  </div>
+                  <div
+                    className={`text-[10px] uppercase tracking-wider mt-0.5 ${
+                      isDark ? "text-zinc-500" : "text-zinc-400"
+                    }`}
+                  >
+                    {hi.exercises[0]?.name || "No exercises"}
+                    {hi.exercises.length > 1 &&
+                      ` +${hi.exercises.length - 1} more`}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 ml-3">
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider ${
+                      isDark ? "text-zinc-500" : "text-zinc-400"
+                    }`}
+                  >
+                    {hi.exercises.length} ex · {totalSets} sets
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selected Workout Details */}
+        {displayItem && (
+          <>
+            {/* Redo Button */}
+            <div className="mb-4">
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                onClick={handleRedoWorkout}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <RotateCcw className="w-4 h-4" />
+                  Redo Workout
+                </span>
+              </Button>
+            </div>
+
+            {/* Exercises header */}
+            <div className="flex justify-between items-center mb-3">
               <span
-                className={`text-sm truncate flex-1 text-left ${
-                  isSelected ? "text-black/70" : "text-white/70"
+                className={`text-xs font-black uppercase tracking-widest ${
+                  isDark ? "text-orange-400" : "text-red-600"
                 }`}
               >
-                {hi.exercises[0]?.name || "No exercises"}
+                Exercises ({displayItem.exercises.length})
               </span>
               <span
-                className={`text-xs ${isSelected ? "text-black/50" : "text-gray-500"}`}
+                className={`text-[10px] uppercase tracking-wider ${
+                  isDark ? "text-zinc-500" : "text-zinc-400"
+                }`}
               >
-                {hi.exercises.length} ex
+                {dayjs(displayItem.date).format("DD/MM/YYYY HH:mm")}
               </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Selected Workout Details */}
-      {displayItem && (
-        <>
-          <div className="text-xs text-gray-400 mb-2">
-            {dayjs(displayItem.date).format("DD/MM/YYYY HH:mm")}
-            {displayItem.name && ` • ${displayItem.name}`}
-          </div>
-
-          {/* Redo Button */}
-          <button
-            onClick={handleRedoWorkout}
-            className="w-full bg-cyan-500 text-black font-bold py-3 rounded-md hover:bg-cyan-400 transition mb-3"
-          >
-            Redo Workout
-          </button>
-
-          {/* Exercise List */}
-          <div className="bg-gray-800 rounded-lg border border-gray-600 overflow-hidden">
-            <div className="p-2 text-xs text-gray-400 border-b border-gray-600">
-              Exercises ({displayItem.exercises.length})
             </div>
-            {displayItem.exercises.map((exercise) => {
-              const isExpanded = expandedItems.includes(exercise.id);
-              const reps = exercise.sets.map((s) => s.reps);
-              const minReps = Math.min(...reps);
-              const maxReps = Math.max(...reps);
 
-              return (
-                <div
-                  key={exercise.id}
-                  className="border-b border-gray-600 last:border-b-0"
-                >
-                  {/* Exercise Header - Click to expand */}
-                  <button
-                    onClick={() => toggleExpand(exercise.id)}
-                    className="w-full flex items-center justify-between p-3 hover:bg-gray-700 transition"
+            {/* Exercise List */}
+            <div className="space-y-2">
+              {displayItem.exercises.map((exercise) => {
+                const isExpanded = expandedItems.includes(exercise.id);
+                const reps = exercise.sets.map((s) => s.reps);
+                const minReps = Math.min(...reps);
+                const maxReps = Math.max(...reps);
+
+                return (
+                  <div
+                    key={exercise.id}
+                    className={`
+                      rounded-sm border transition-all
+                      ${
+                        isDark
+                          ? "bg-linear-to-br from-zinc-900 to-zinc-950 border-zinc-800/50"
+                          : "bg-white border-gray-200"
+                      }
+                    `}
                   >
-                    <span className="text-white text-sm font-medium flex-1 text-left">
-                      {exercise.name}
-                    </span>
-                    <span className="text-gray-400 text-xs mx-1">
-                      {exercise.sets.length} sets
-                    </span>
-                    <span className="text-gray-400 text-xs mx-2 w-12 text-right">
-                      {minReps}
-                      {maxReps !== minReps ? ` - ${maxReps}` : ""}
-                    </span>
-                    <span className="text-gray-400 text-xs ml-2">
-                      {isExpanded ? "▲" : "▼"}
-                    </span>
-                  </button>
-
-                  {/* Expanded Sets */}
-                  {isExpanded && (
-                    <div className="p-3 pt-0 space-y-1 border-t border-gray-600">
-                      {exercise.sets.map((set, setIndex) => (
+                    <button
+                      onClick={() => toggleExpand(exercise.id)}
+                      className="w-full flex items-center justify-between p-3 transition"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div
-                          key={setIndex}
-                          className="flex items-center justify-between text-sm py-1 border-b border-gray-700 last:border-b-0"
-                        >
-                          <span className="text-gray-400 w-6">
-                            {setIndex + 1}
-                          </span>
-                          <div className="flex items-center gap-2 flex-1 ml-2">
-                            <span className="text-white">{set.reps}</span>
-                            <span className="text-gray-400">×</span>
-                            <span className="text-white">{set.weight}</span>
-                            <span className="text-gray-400">KG</span>
+                          className={`w-1.5 h-8 rounded-sm shrink-0 ${
+                            isDark
+                              ? "bg-linear-to-b from-red-600 to-orange-500"
+                              : "bg-red-500"
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className={`font-black text-sm uppercase tracking-wider truncate ${
+                              isDark ? "text-white" : "text-zinc-800"
+                            }`}
+                          >
+                            {exercise.name}
                           </div>
-                          {set.rpe && (
-                            <span className="text-gray-400 text-xs">
-                              RPE {set.rpe}
-                            </span>
-                          )}
+                          <div
+                            className={`text-[10px] uppercase tracking-wider mt-0.5 ${
+                              isDark ? "text-zinc-500" : "text-zinc-400"
+                            }`}
+                          >
+                            {exercise.sets.length} sets · {minReps}
+                            {maxReps !== minReps ? ` - ${maxReps}` : ""} reps
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+                      </div>
+
+                      {isExpanded ? (
+                        <ChevronUp
+                          className={`w-4 h-4 shrink-0 ${
+                            isDark ? "text-orange-400" : "text-red-500"
+                          }`}
+                        />
+                      ) : (
+                        <ChevronDown
+                          className={`w-4 h-4 shrink-0 ${
+                            isDark ? "text-orange-400" : "text-red-500"
+                          }`}
+                        />
+                      )}
+                    </button>
+
+                    {isExpanded && (
+                      <div
+                        className={`p-3 pt-0 border-t space-y-1 ${
+                          isDark ? "border-zinc-800/50" : "border-gray-200"
+                        }`}
+                      >
+                        {exercise.sets.map((set, setIndex) => (
+                          <div
+                            key={setIndex}
+                            className={`flex items-center justify-between text-sm py-1 border-b last:border-b-0 ${
+                              isDark ? "border-zinc-800/30" : "border-gray-100"
+                            }`}
+                          >
+                            <span
+                              className={`text-xs font-black w-6 ${
+                                isDark ? "text-zinc-500" : "text-zinc-400"
+                              }`}
+                            >
+                              {setIndex + 1}
+                            </span>
+                            <div className="flex items-center gap-2 flex-1 ml-2">
+                              <span
+                                className={`font-michroma font-bold ${
+                                  isDark ? "text-white" : "text-zinc-800"
+                                }`}
+                              >
+                                {set.reps}
+                              </span>
+                              <span
+                                className={
+                                  isDark ? "text-zinc-500" : "text-zinc-400"
+                                }
+                              >
+                                ×
+                              </span>
+                              <span
+                                className={`font-michroma font-bold ${
+                                  isDark ? "text-white" : "text-zinc-800"
+                                }`}
+                              >
+                                {set.weight}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold uppercase tracking-wider ${
+                                  isDark ? "text-zinc-500" : "text-zinc-400"
+                                }`}
+                              >
+                                KG
+                              </span>
+                            </div>
+                            {set.rpe && (
+                              <span
+                                className={`text-[10px] font-bold uppercase tracking-wider ${
+                                  isDark ? "text-orange-400" : "text-red-500"
+                                }`}
+                              >
+                                RPE {set.rpe}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* Bottom accent */}
+        <div className="mt-8 text-center">
+          <p
+            className={`text-[8px] uppercase tracking-[0.3em] font-black ${
+              isDark ? "text-orange-900/30" : "text-red-200"
+            }`}
+          >
+            Steel forged in blood
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
