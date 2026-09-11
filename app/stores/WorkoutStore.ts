@@ -184,7 +184,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           currentWorkout: {
             ...currentWorkout,
             exercises: currentWorkout.exercises.filter(
-              (e) => e.id !== exerciseId,
+              (e) => e._id !== exerciseId,
             ),
           },
         });

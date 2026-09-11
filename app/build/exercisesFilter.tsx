@@ -1,44 +1,67 @@
 "use client";
 
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useTheme } from "../context/ThemeContext";
+import { Button } from "../components/ui/Button";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface FilterOptions {
   primaryMuscles: string;
   equipment: string;
   mechanic: string;
   force: string;
-  level: string;
   category: string;
   limit: string;
   page: string;
-  search?: any;
+  // level: string;
+  search?: string;
 }
 
 interface ExerciseFiltersProps {
   initialFilters?: Partial<FilterOptions>;
 }
 
-// Available options for each filter
-const FILTER_OPTIONS = {
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+// Category tabs (key + display label)
+const FILTER_CATEGORIES = [
+  { key: "primaryMuscles", label: "Muscle" },
+  { key: "equipment", label: "Equipment" },
+  { key: "mechanic", label: "Mechanic" },
+  { key: "force", label: "Force" },
+  // { key: "level", label: "Level" },
+  { key: "category", label: "Category" },
+] as const;
+
+// Options for each category
+const FILTER_OPTIONS: Record<string, { value: string; label: string }[]> = {
   primaryMuscles: [
-    { value: "", label: "All Muscles" },
-    { value: "abdominals", label: "Abdominals" },
-    { value: "back", label: "Back" },
-    { value: "biceps", label: "Biceps" },
-    { value: "calves", label: "Calves" },
+    { value: "", label: "All" },
     { value: "chest", label: "Chest" },
-    { value: "forearms", label: "Forearms" },
-    { value: "glutes", label: "Glutes" },
-    { value: "hamstrings", label: "Hamstrings" },
-    { value: "legs", label: "Legs" },
-    { value: "quadriceps", label: "Quadriceps" },
+    { value: "lats", label: "Lats" },
+    { value: "lower back", label: "Lower Back" },
+    { value: "middle back", label: "Middle Back" },
     { value: "shoulders", label: "Shoulders" },
-    { value: "traps", label: "Traps" },
+    { value: "biceps", label: "Biceps" },
     { value: "triceps", label: "Triceps" },
+    { value: "forearms", label: "Forearms" },
+    { value: "traps", label: "Traps" },
+    { value: "quadriceps", label: "Quadriceps" },
+    { value: "hamstrings", label: "Hamstrings" },
+    { value: "abductors", label: "Abductors" },
+    { value: "adductors", label: "Adductors" },
+    { value: "glutes", label: "Glutes" },
+    { value: "calves", label: "Calves" },
+    { value: "abdominals", label: "Abdominals" },
   ],
   equipment: [
-    { value: "", label: "All Equipment" },
+    { value: "", label: "All" },
     { value: "body only", label: "Body Only" },
     { value: "barbell", label: "Barbell" },
     { value: "dumbbell", label: "Dumbbell" },
@@ -51,24 +74,24 @@ const FILTER_OPTIONS = {
     { value: "body weight", label: "Body Weight" },
   ],
   mechanic: [
-    { value: "", label: "All Mechanics" },
+    { value: "", label: "All" },
     { value: "compound", label: "Compound" },
     { value: "isolation", label: "Isolation" },
   ],
   force: [
-    { value: "", label: "All Forces" },
+    { value: "", label: "All" },
     { value: "pull", label: "Pull" },
     { value: "push", label: "Push" },
     { value: "static", label: "Static" },
   ],
-  level: [
-    { value: "", label: "All Levels" },
-    { value: "beginner", label: "Beginner" },
-    { value: "intermediate", label: "Intermediate" },
-    { value: "expert", label: "Expert" },
-  ],
+  // level: [
+  //   { value: "", label: "All" },
+  //   { value: "beginner", label: "Beginner" },
+  //   { value: "intermediate", label: "Intermediate" },
+  //   { value: "expert", label: "Expert" },
+  // ],
   category: [
-    { value: "", label: "All Categories" },
+    { value: "", label: "All" },
     { value: "strength", label: "Strength" },
     { value: "cardio", label: "Cardio" },
     { value: "stretching", label: "Stretching" },
@@ -76,56 +99,65 @@ const FILTER_OPTIONS = {
     { value: "powerlifting", label: "Powerlifting" },
     { value: "strongman", label: "Strongman" },
   ],
-  limit: [
-    { value: "10", label: "10 per page" },
-    { value: "20", label: "20 per page" },
-    { value: "50", label: "50 per page" },
-    { value: "100", label: "100 per page" },
-  ],
 };
+
+// Separate from the filters (not a tab)
+const LIMIT_OPTIONS = [
+  { value: "10", label: "10 per page" },
+  { value: "20", label: "20 per page" },
+  { value: "50", label: "50 per page" },
+  { value: "100", label: "100 per page" },
+];
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 export default function ExerciseFilters({
   initialFilters = {},
 }: ExerciseFiltersProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Initialize state from URL params or defaults
+  const [currentFilterIndex, setCurrentFilterIndex] = useState(0);
+
   const [filters, setFilters] = useState<FilterOptions>({
     primaryMuscles:
       searchParams.get("primaryMuscles") || initialFilters.primaryMuscles || "",
     equipment: searchParams.get("equipment") || initialFilters.equipment || "",
     mechanic: searchParams.get("mechanic") || initialFilters.mechanic || "",
     force: searchParams.get("force") || initialFilters.force || "",
-    level: searchParams.get("level") || initialFilters.level || "",
+    // level: searchParams.get("level") || initialFilters.level || "",
     category: searchParams.get("category") || initialFilters.category || "",
     limit: searchParams.get("limit") || initialFilters.limit || "20",
     page: searchParams.get("page") || initialFilters.page || "1",
   });
 
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value, page: "1" })); // Reset to page 1 on filter change
+  // -------------------------------------------------------------------------
+  // Handlers
+  // -------------------------------------------------------------------------
+
+  const handleFilterChange = (e: any) => {
+    const { name, value } = e;
+    setFilters((prev) => ({ ...prev, [name]: value, page: "1" }));
   };
 
-  const handleSearch = (e: React.ChangeEvent) => {
-    e.preventDefault();
-
-    // Build query string from filters
+  const handleSearch = () => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
       if (value && value !== "") {
         params.append(key, value);
       }
     });
-
-    // Navigate to the current page with filters
-    router.push(`${pathname}?${params.toString()}`);
-    // console.log("params", pathname);
+    router.replace(`${pathname}?${params.toString()}`);
   };
+
+  useEffect(() => {
+    handleSearch();
+  }, [filters]);
 
   const handleClearFilters = () => {
     const emptyFilters: FilterOptions = {
@@ -133,7 +165,7 @@ export default function ExerciseFilters({
       equipment: "",
       mechanic: "",
       force: "",
-      level: "",
+      // level: "",
       category: "",
       limit: "20",
       page: "1",
@@ -142,209 +174,165 @@ export default function ExerciseFilters({
     router.push(pathname);
   };
 
+  // -------------------------------------------------------------------------
+  // Derived values
+  // -------------------------------------------------------------------------
+
+  const currentCategory = FILTER_CATEGORIES[currentFilterIndex];
+  const currentOptions = FILTER_OPTIONS[currentCategory.key];
+  const currentValue = filters[currentCategory.key as keyof FilterOptions];
+
+  // -------------------------------------------------------------------------
+  // Styles
+  // -------------------------------------------------------------------------
+
+  const containerClass = `p-4 rounded-sm border mb-6 ${
+    isDark ? "bg-zinc-900/50 border-orange-900/20" : "bg-white border-red-200"
+  }`;
+
+  // --- Tabs ---
+  const getTabClass = (isActive: boolean, hasValue: boolean) => {
+    if (isDark) {
+      if (isActive)
+        return "bg-orange-600 text-white border-orange-500 shadow-lg shadow-orange-600/40";
+      if (hasValue)
+        return "bg-orange-950/40 text-orange-400 border-orange-700/50 hover:border-orange-600";
+      return "bg-zinc-800 text-zinc-500 border-zinc-700 hover:border-zinc-600";
+    }
+    if (isActive)
+      return "bg-red-600 text-white border-red-600 shadow-md shadow-red-300";
+    if (hasValue)
+      return "bg-red-50 text-red-600 border-red-300 hover:border-red-400";
+    return "bg-gray-100 text-gray-500 border-gray-200 hover:border-gray-300";
+  };
+
+  // --- Options (smaller, softer) ---
+  const getOptionClass = (isActive: boolean) => {
+    if (isDark) {
+      return isActive
+        ? "bg-orange-500/20 text-orange-300 border-orange-500/40"
+        : "bg-zinc-800/40 text-zinc-400 border-zinc-800 hover:border-zinc-700";
+    }
+    return isActive
+      ? "bg-red-50 text-red-700 border-red-300"
+      : "bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-300";
+  };
+
+  const labelClass = `block text-xs font-bold uppercase tracking-wider mb-1 ${
+    isDark ? "text-zinc-400" : "text-zinc-500"
+  }`;
+
+  const inputClass = `w-full px-3 py-2 text-sm rounded-sm border focus:outline-none focus:ring-2 ${
+    isDark
+      ? "bg-zinc-800 text-white border-zinc-700 focus:border-orange-500 focus:ring-orange-500/20"
+      : "bg-gray-50 text-zinc-800 border-gray-200 focus:border-red-400 focus:ring-red-200"
+  }`;
+
+  // -------------------------------------------------------------------------
+  // Render
+  // -------------------------------------------------------------------------
+
   return (
-    <form
-      onSubmit={handleSearch}
-      className="bg-white p-4 rounded-lg shadow-md mb-6"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Muscle Filter */}
-        <div>
-          <label
-            htmlFor="primaryMuscles"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Primary Muscle
-          </label>
-          <select
-            id="primaryMuscles"
-            name="primaryMuscles"
-            value={filters.primaryMuscles}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {FILTER_OPTIONS.primaryMuscles.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+    <>
+      <div className={containerClass}>
+        {/* Category tabs */}
+        <div className="flex mb-4">
+          <div className="flex flex-col w-1/3 gap-1.5">
+            {FILTER_CATEGORIES.map((cat, index) => {
+              const isActive = index === currentFilterIndex;
+              const hasValue = !!filters[cat.key as keyof FilterOptions];
+              return (
+                <Button
+                  key={cat.key}
+                  onClick={() => setCurrentFilterIndex(index)}
+                  className={`px-3 py-2 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all ${getTabClass(
+                    isActive,
+                    hasValue,
+                  )}`}
+                >
+                  {cat.label}
+                  {hasValue && !isActive && (
+                    <span className="ml-1.5 text-[9px] opacity-70">●</span>
+                  )}
+                </Button>
+              );
+            })}
+          </div>
 
-        {/* Equipment Filter */}
-        <div>
-          <label
-            htmlFor="equipment"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Equipment
-          </label>
-          <select
-            id="equipment"
-            name="equipment"
-            value={filters.equipment}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {FILTER_OPTIONS.equipment.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          {/* Options for the selected category */}
+          <div className="flex flex-wrap h-[196.5px] w-2/3 ml-4 gap-1.5 overflow-y-scroll p-2">
+            {currentOptions.map(({ label, value }) => {
+              const isActive = value === currentValue;
+              return (
+                <button
+                  key={label}
+                  onClick={() =>
+                    handleFilterChange({ name: currentCategory.key, value })
+                  }
+                  className={`px-2.5 py-1 h-12 rounded-sm text-[10px] font-bold uppercase tracking-wide border transition-all ${getOptionClass(
+                    isActive,
+                  )}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
+        {/* Search */}
 
-        {/* Mechanic Filter */}
         <div>
-          <label
-            htmlFor="mechanic"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Mechanic
-          </label>
-          <select
-            id="mechanic"
-            name="mechanic"
-            value={filters.mechanic}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {FILTER_OPTIONS.mechanic.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Force Filter */}
-        <div>
-          <label
-            htmlFor="force"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Force
-          </label>
-          <select
-            id="force"
-            name="force"
-            value={filters.force}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {FILTER_OPTIONS.force.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Level Filter */}
-        <div>
-          <label
-            htmlFor="level"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Level
-          </label>
-          <select
-            id="level"
-            name="level"
-            value={filters.level}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {FILTER_OPTIONS.level.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Category Filter */}
-        <div>
-          <label
-            htmlFor="category"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Category
-          </label>
-          <select
-            id="category"
-            name="category"
-            value={filters.category}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {FILTER_OPTIONS.category.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Items per page */}
-        <div>
-          <label
-            htmlFor="limit"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Items per page
-          </label>
-          <select
-            id="limit"
-            name="limit"
-            value={filters.limit}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            {FILTER_OPTIONS.limit.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Search Input (for text search) */}
-        <div>
-          <label
-            htmlFor="search"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Search by name
+          <label htmlFor="search" className={labelClass}>
+            Search
           </label>
           <input
             id="search"
             name="search"
             type="text"
             value={filters.search || ""}
-            onChange={handleFilterChange}
+            onChange={(e) =>
+              handleFilterChange({ name: e.target.name, value: e.target.value })
+            }
             placeholder="Search exercises..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClass}
           />
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="mt-4 flex gap-2">
-        <button
-          type="submit"
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-        >
-          Apply Filters
-        </button>
-        <button
-          type="button"
-          onClick={handleClearFilters}
-          className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors"
-        >
-          Clear Filters
-        </button>
+        {/* Clear */}
+        <div className="mt-4 flex gap-2">
+          <button
+            type="button"
+            onClick={handleClearFilters}
+            className={`px-6 py-2 rounded-sm text-sm font-black uppercase tracking-wider transition ${
+              isDark
+                ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white"
+                : "bg-gray-200 hover:bg-gray-300 text-zinc-600"
+            }`}
+          >
+            Clear
+          </button>
+        </div>
       </div>
-    </form>
+      <div className="w-20 justify-end">
+        <label htmlFor="limit" className={labelClass}>
+          Per page
+        </label>
+        <select
+          id="limit"
+          name="limit"
+          value={filters.limit}
+          onChange={(e) =>
+            handleFilterChange({ name: e.target.name, value: e.target.value })
+          }
+          className={inputClass}
+        >
+          {LIMIT_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      </div>
+    </>
   );
 }

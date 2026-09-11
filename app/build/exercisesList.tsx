@@ -1,59 +1,108 @@
 "use client";
 
 import { useWorkoutStore } from "../stores/WorkoutStore";
+import { useTheme } from "../context/ThemeContext";
 import { Exercise } from "../db/models/Exercises";
+import { Plus, Check } from "lucide-react";
 
-// This is the main page component (Server Component)
 export default function ExercisesList({
   exercises,
 }: {
   exercises: Exercise[];
 }) {
-  const { addExercise } = useWorkoutStore();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const { addExercise, currentWorkout } = useWorkoutStore();
+
+  const isExerciseAdded = (exercise: Exercise) => {
+    return currentWorkout?.exercises.some((e) => e.id === exercise.id) || false;
+  };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {exercises.map((exercise) => (
-        <div
-          key={exercise._id}
-          // href={`/exercises/${exercise.id}`}
-          className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
-        >
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-2">{exercise.name}</h2>
-            <div className="space-y-1 text-sm text-gray-600">
-              <div className="flex justify-between">
-                <span className="font-medium">Level:</span>
-                <span className="capitalize">{exercise.level}</span>
+    <div className="space-y-3">
+      {exercises.map((exercise) => {
+        const added = isExerciseAdded(exercise);
+        return (
+          <div
+            key={exercise._id}
+            className={`
+              p-4 rounded-sm border transition-all
+              ${
+                isDark
+                  ? `bg-linear-to-br from-zinc-900 to-zinc-950 ${
+                      added
+                        ? "border-green-800/50 bg-linear-to-br from-green-950/20 to-zinc-900"
+                        : "border-zinc-800/50 hover:border-orange-700/50"
+                    }`
+                  : `bg-white ${
+                      added
+                        ? "border-green-300 bg-green-50/50"
+                        : "border-gray-200 hover:border-red-300"
+                    }`
+              }
+            `}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <h3
+                  className={`font-black text-sm uppercase tracking-wider truncate ${
+                    isDark ? "text-white" : "text-zinc-800"
+                  }`}
+                >
+                  {exercise.name}
+                </h3>
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] uppercase tracking-wider">
+                  <span className={isDark ? "text-zinc-400" : "text-zinc-500"}>
+                    {exercise.primaryMuscles.join(", ")}
+                  </span>
+                  <span className={isDark ? "text-zinc-600" : "text-zinc-300"}>
+                    •
+                  </span>
+                  <span className={isDark ? "text-zinc-400" : "text-zinc-500"}>
+                    {exercise.equipment}
+                  </span>
+                  {/* 
+                  
+                  <span className={isDark ? "text-zinc-600" : "text-zinc-300"}>
+                    •
+                  </span>
+                  <span
+                    className={`capitalize ${isDark ? "text-zinc-400" : "text-zinc-500"}`}
+                  >
+                    {exercise.level}
+                  </span> */}
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Force:</span>
-                <span className="capitalize">{exercise.force}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Mechanic:</span>
-                <span className="capitalize">{exercise.mechanic}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Equipment:</span>
-                <span>{exercise.equipment}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Muscles:</span>
-                <span>{exercise.primaryMuscles.join(", ")}</span>
-              </div>
+              <button
+                onClick={() => addExercise(exercise)}
+                disabled={added}
+                className={`
+                  shrink-0 ml-3 px-4 py-1.5 rounded-sm text-xs font-black uppercase tracking-wider transition
+                  ${
+                    added
+                      ? isDark
+                        ? "bg-green-600/30 text-green-400 border border-green-600/30 cursor-default"
+                        : "bg-green-100 text-green-600 border border-green-300 cursor-default"
+                      : isDark
+                        ? "bg-orange-600 hover:bg-orange-700 text-white border border-orange-600/30 shadow-lg shadow-orange-600/20"
+                        : "bg-red-600 hover:bg-red-700 text-white border border-red-400 shadow-sm"
+                  }
+                `}
+              >
+                {added ? (
+                  <span className="flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Added
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <Plus className="w-3 h-3" /> Add
+                  </span>
+                )}
+              </button>
             </div>
           </div>
-          <div
-            onClick={() => {
-              addExercise(exercise);
-              console.log("click", exercise);
-            }}
-          >
-            ADD TO WORKOUT
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

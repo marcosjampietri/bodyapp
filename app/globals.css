@@ -19,6 +19,9 @@
 @theme {
   --font-montserrat: var(--font-montserrat);
   --font-michroma: var(--font-michroma);
+
+  --shadow-glow:
+    0px 1px 30px 12px rgb(224 27 36 / 72%), 0px 4px 6px -4px rgb(0 0 0 / 100%);
 }
 
 /* ... rest of your styles */

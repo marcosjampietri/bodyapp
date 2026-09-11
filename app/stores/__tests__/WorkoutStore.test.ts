@@ -104,7 +104,8 @@ describe("WorkoutStore", () => {
       const exercise2 = createTestExercise("ex2", "Squat");
       addExercise(exercise1);
       addExercise(exercise2);
-      removeExercise("ex1");
+      const ID = exercise1._id;
+      removeExercise(ID);
       const { currentWorkout } = useWorkoutStore.getState();
       expect(currentWorkout?.exercises).toHaveLength(1);
       expect(currentWorkout?.exercises[0].name).toBe("Squat");
