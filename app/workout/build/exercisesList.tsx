@@ -1,8 +1,8 @@
 "use client";
 
-import { useWorkoutStore } from "../stores/WorkoutStore";
-import { useTheme } from "../context/ThemeContext";
-import { Exercise } from "../db/models/Exercises";
+import { useWorkoutStore } from "../../stores/WorkoutStore";
+import { useTheme } from "../../context/ThemeContext";
+import { Exercise } from "../../db/models/Exercises";
 import { Plus, Check } from "lucide-react";
 
 export default function ExercisesList({

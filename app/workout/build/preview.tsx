@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useWorkoutStore } from "../stores/WorkoutStore";
-import { useTheme } from "../context/ThemeContext";
+import { useWorkoutStore } from "../../stores/WorkoutStore";
+import { useTheme } from "../../context/ThemeContext";
 import { X, Dumbbell } from "lucide-react";
 
 export default function WorkoutPreview() {

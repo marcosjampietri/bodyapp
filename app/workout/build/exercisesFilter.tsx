@@ -2,8 +2,8 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useTheme } from "../context/ThemeContext";
-import { Button } from "../components/ui/Button";
+import { useTheme } from "../../context/ThemeContext";
+import { Button } from "../../components/ui/Button";
 
 // ---------------------------------------------------------------------------
 // Types

@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useTheme } from "../context/ThemeContext";
-import { ThemeToggle } from "../components/theme/ThemeToggle";
+import { useTheme } from "../../context/ThemeContext";
+import { ThemeToggle } from "../../components/theme/ThemeToggle";
 import ExerciseFilters from "./exercisesFilter";
 import Pagination from "./pagination";
 import ExercisesList from "./exercisesList";

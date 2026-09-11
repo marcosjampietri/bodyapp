@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useWorkoutStore } from "../stores/WorkoutStore";
+import { useWorkoutStore } from "../../stores/WorkoutStore";
 import dayjs from "dayjs";
 import Link from "next/link";
 import Calendar from "react-calendar";

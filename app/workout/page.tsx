@@ -206,7 +206,7 @@ export default function WorkoutPage() {
             fullWidth
             className="flex items-center justify-center gap-2"
             onClick={() => {
-              router.push("/build");
+              router.push("/workout/build");
             }}
           >
             <Plus className="w-4 h-4" />
@@ -216,6 +216,21 @@ export default function WorkoutPage() {
 
         {/* Controls */}
         <WorkoutControls />
+        {/* Load From History */}
+        <div className="my-6">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            className="flex items-center justify-center gap-2"
+            onClick={() => {
+              router.push("/workout/history");
+            }}
+          >
+            <Plus className="w-4 h-4" />
+            History
+          </Button>
+        </div>
       </div>
     </div>
   );
