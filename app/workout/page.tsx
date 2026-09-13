@@ -21,6 +21,7 @@ import { ProgressBar } from "../components/ui/ProgressBar";
 import ExerciseList from "./components/ExerciseList";
 import WorkoutControls from "./components/WorkoutControls";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function WorkoutPage() {
   const { theme } = useTheme();
@@ -74,17 +75,18 @@ export default function WorkoutPage() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button
+            <Link
+              href="/profile"
               className={`w-10 h-10 rounded-sm flex items-center justify-center transition ${
                 isDark
                   ? "bg-linear-to-br from-zinc-900 to-zinc-950 border border-orange-900/30 hover:from-orange-950 hover:to-zinc-900"
-                  : "bg-white border border-orange-200 hover:bg-orange-50 hover:border-orange-300"
+                  : "bg-white border border-red-200 hover:bg-red-50 hover:border-red-300"
               }`}
             >
               <User
                 className={`w-5 h-5 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}
               />
-            </button>
+            </Link>
           </div>
         </div>
 

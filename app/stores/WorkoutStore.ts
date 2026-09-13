@@ -7,7 +7,7 @@ export interface WorkoutExercise extends Exercise {
   notes?: string;
   completed: boolean;
   order: number;
-  settings?: {
+  settings: {
     splitWeight?: boolean;
     barWeight?: number;
   };
@@ -76,6 +76,7 @@ interface WorkoutState {
   syncWorkouts: () => Promise<void>;
   saveToDatabase: (workout: Workout) => Promise<void>;
   loadFromDatabase: () => Promise<void>;
+  resetStore: () => void;
 }
 
 // Helper to generate unique IDs
@@ -161,6 +162,7 @@ export const useWorkoutStore = create<WorkoutState>()(
               completed: false,
             },
           ],
+          settings: {},
           completed: false,
           order: workout.exercises.length,
           notes: "",
@@ -403,11 +405,18 @@ export const useWorkoutStore = create<WorkoutState>()(
             headers: {
               "Content-Type": "application/json",
             },
+            credentials: "include",
             body: JSON.stringify(workout),
           });
 
+          // Session expired — kick to login
+          if (response.status === 401) {
+            get().resetStore();
+            window.location.href = "/login";
+            return;
+          }
+
           if (response.ok) {
-            // Update sync status
             set((state) => ({
               workoutHistory: state.workoutHistory.map((w) =>
                 w.id === workout.id ? { ...w, synced: true } : w,
@@ -416,21 +425,25 @@ export const useWorkoutStore = create<WorkoutState>()(
           }
         } catch (error) {
           console.error("Failed to save workout:", error);
-          // Workout will stay in history with synced: false
-          // It will be retried on next sync
         }
       },
-
       // Load workouts from database
       loadFromDatabase: async () => {
         set({ isLoading: true });
 
         try {
-          const response = await fetch("/api/workouts");
+          const response = await fetch("/api/workouts", {
+            credentials: "include",
+          });
+
+          if (response.status === 401) {
+            get().resetStore();
+            window.location.href = "/login";
+            return;
+          }
+
           if (response.ok) {
             const data = await response.json();
-
-            // Merge with local history (avoid duplicates)
             set((state) => {
               const existingIds = new Set(
                 state.workoutHistory.map((w) => w.id),
@@ -438,7 +451,6 @@ export const useWorkoutStore = create<WorkoutState>()(
               const newWorkouts = data.workouts.filter(
                 (w: Workout) => !existingIds.has(w.id),
               );
-
               return {
                 workoutHistory: [...newWorkouts, ...state.workoutHistory],
                 isLoading: false,
@@ -449,6 +461,14 @@ export const useWorkoutStore = create<WorkoutState>()(
           console.error("Failed to load workouts:", error);
           set({ isLoading: false });
         }
+      },
+      resetStore: () => {
+        set({
+          currentWorkout: null,
+          workoutHistory: [],
+          isLoading: false,
+          isSyncing: false,
+        });
       },
 
       // Sync all unsynced workouts

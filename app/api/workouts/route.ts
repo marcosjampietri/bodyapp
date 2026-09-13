@@ -1,16 +1,34 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
+import { cookies } from "next/headers";
 import { connectToDatabase } from "@/app/db/connect";
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+
+// Helper to get userId from JWT cookie
+async function getUserId(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return (payload.userId as string) || null;
+  } catch {
+    return null;
+  }
+}
 
 // GET /api/workouts - Get user's workout history
 export async function GET(request: Request) {
   try {
+    const userId = await getUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const { db } = await connectToDatabase();
     const collection = db.collection("workouts");
-
-    // Get user ID from session (implement your auth)
-    const userId = "user123"; // Replace with actual user ID
 
     const limit = parseInt(searchParams.get("limit") || "50");
     const page = parseInt(searchParams.get("page") || "1");
@@ -41,25 +59,26 @@ export async function GET(request: Request) {
 // POST /api/workouts - Save a completed workout
 export async function POST(request: Request) {
   try {
+    const userId = await getUserId();
+    if (!userId) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
     const workout = await request.json();
     const { db } = await connectToDatabase();
     const collection = db.collection("workouts");
 
     // Add metadata
-    workout.userId = "user123"; // Replace with actual user ID
+    workout.userId = userId;
     workout.syncedAt = new Date();
 
-    // Check if workout already exists (update vs insert)
-    const existing = await collection.findOne({ id: workout.id });
+    // Check if workout already exists for THIS user (update vs insert)
+    const existing = await collection.findOne({ id: workout.id, userId });
 
-    let result;
     if (existing) {
-      result = await collection.updateOne(
-        { id: workout.id },
-        { $set: workout },
-      );
+      await collection.updateOne({ id: workout.id, userId }, { $set: workout });
     } else {
-      result = await collection.insertOne(workout);
+      await collection.insertOne(workout);
     }
 
     return NextResponse.json({

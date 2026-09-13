@@ -19,6 +19,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dayjs": "^1.11.23",
+    "jose": "^6.2.12",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^1.40.0",
     "mongoose": "^9.9.4",

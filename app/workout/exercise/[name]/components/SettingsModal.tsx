@@ -28,8 +28,8 @@ export default function SettingsModal({
 
   useEffect(() => {
     if (exercise) {
-      setSplitWeight(exercise.settings?.splitWeight || false);
-      setBarWeight(exercise.settings?.barWeight || 0);
+      setSplitWeight(exercise.settings.splitWeight || false);
+      setBarWeight(exercise.settings.barWeight || 0);
     }
   }, [exercise]);
 
