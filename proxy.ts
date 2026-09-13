@@ -19,7 +19,7 @@ const AUTH_API_PREFIX = "/api/auth";
 // Static/assets that should never be checked
 const STATIC_PREFIXES = ["/_next", "/favicon.ico", "/.swc"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip static files
