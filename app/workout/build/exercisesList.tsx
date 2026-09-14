@@ -15,7 +15,9 @@ export default function ExercisesList({
   const { addExercise, currentWorkout } = useWorkoutStore();
 
   const isExerciseAdded = (exercise: Exercise) => {
-    return currentWorkout?.exercises.some((e) => e.id === exercise.id) || false;
+    return (
+      currentWorkout?.exercises.some((e) => e._id === exercise._id) || false
+    );
   };
 
   return (

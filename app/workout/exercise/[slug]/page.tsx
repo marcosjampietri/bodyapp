@@ -15,13 +15,15 @@ import Controls from "./components/Controls";
 
 export default function ExercisePage() {
   const params = useParams();
-  const exerciseId = params.name as string;
+  const exerciseSlug = params.slug as string;
   const { currentWorkout, addSet, removeSet } = useWorkoutStore();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const exercise = currentWorkout?.exercises.find((e) => e.id === exerciseId);
+  const exercise = currentWorkout?.exercises.find(
+    (e) => e.slug === exerciseSlug,
+  );
 
   if (!exercise) {
     return (
@@ -81,10 +83,10 @@ export default function ExercisePage() {
         <SettingsModal
           isOpen={settingsOpen}
           onClose={() => setSettingsOpen(false)}
-          exerciseId={exercise.id}
+          exerciseId={exercise._id}
         />
 
-        <SetInput exerciseId={exercise.id} />
+        <SetInput exerciseId={exercise._id} />
 
         {/* Add Set – dashed line */}
         <button

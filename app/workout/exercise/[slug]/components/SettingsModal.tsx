@@ -20,7 +20,7 @@ export default function SettingsModal({
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const exercise = currentWorkout?.exercises.find((e) => e.id === exerciseId);
+  const exercise = currentWorkout?.exercises.find((e) => e._id === exerciseId);
   const settings = exercise?.settings || { splitWeight: false, barWeight: 0 };
 
   const [splitWeight, setSplitWeight] = useState(settings.splitWeight || false);

@@ -13,7 +13,7 @@ export default function SetInput({ exerciseId }: SetInputProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const exercise = currentWorkout?.exercises.find((e) => e.id === exerciseId);
+  const exercise = currentWorkout?.exercises.find((e) => e._id === exerciseId);
   if (!exercise) return null;
 
   const settings = exercise.settings || { splitWeight: false, barWeight: 0 };
@@ -38,7 +38,7 @@ export default function SetInput({ exerciseId }: SetInputProps) {
     setId: string,
     data: { weight?: number | string; reps?: number; rpe?: number },
   ) => {
-    updateSet(exercise.id, setId, data);
+    updateSet(exercise._id, setId, data);
   };
 
   return (

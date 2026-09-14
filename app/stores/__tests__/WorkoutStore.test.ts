@@ -22,10 +22,10 @@ beforeEach(() => {
 });
 
 // Helper to create a test exercise
-const createTestExercise = (id: string, name: string) => ({
-  _id: `test_${id}`,
-  id: id,
+const createTestExercise = (_id: string, name: string) => ({
+  _id,
   name: name,
+  id: `test_${name}`,
   force: "push" as const,
   level: "intermediate" as const,
   mechanic: "compound" as const,
@@ -182,8 +182,9 @@ describe("WorkoutStore", () => {
       const exercise = createTestExercise("ex1", "Bench Press");
       addExercise(exercise);
       const { currentWorkout } = useWorkoutStore.getState();
+      const exerciseID = currentWorkout?.exercises[0]._id!;
       const setId = currentWorkout?.exercises[0].sets[0].id!;
-      updateSet("ex1", setId, { weight: 100, reps: 10 });
+      updateSet(exerciseID, setId, { weight: 100, reps: 10 });
       const updated = useWorkoutStore.getState();
       expect(updated.currentWorkout?.exercises[0].sets[0].weight).toBe(100);
       expect(updated.currentWorkout?.exercises[0].sets[0].reps).toBe(10);
@@ -196,8 +197,9 @@ describe("WorkoutStore", () => {
       const exercise = createTestExercise("ex1", "Bench Press");
       addExercise(exercise);
       const { currentWorkout } = useWorkoutStore.getState();
+      const exerciseID = currentWorkout?.exercises[0]._id!;
       const setId = currentWorkout?.exercises[0].sets[0].id!;
-      updateSet("ex1", setId, { weight: 100, reps: 10, rpe: 8 });
+      updateSet(exerciseID, setId, { weight: 100, reps: 10, rpe: 8 });
       const updated = useWorkoutStore.getState();
       expect(updated.currentWorkout?.exercises[0].sets[0].rpe).toBe(8);
     });
@@ -217,14 +219,15 @@ describe("WorkoutStore", () => {
       createWorkout("Test Workout");
       const exercise = createTestExercise("ex1", "Bench Press");
       addExercise(exercise);
-      completeExercise("ex1");
       const { currentWorkout } = useWorkoutStore.getState();
-      expect(currentWorkout?.exercises[0].completed).toBe(true);
-      completeExercise("ex1");
-      const updated = useWorkoutStore.getState();
-      expect(updated.currentWorkout?.exercises[0].completed).toBe(false);
+      const exerciseID = currentWorkout?.exercises[0]._id!;
+      completeExercise(exerciseID);
+      const after1 = useWorkoutStore.getState();
+      expect(after1.currentWorkout?.exercises[0].completed).toBe(true);
+      completeExercise(exerciseID);
+      const after2 = useWorkoutStore.getState();
+      expect(after2.currentWorkout?.exercises[0].completed).toBe(false);
     });
-
     test("does nothing if no current workout", () => {
       const { completeExercise } = useWorkoutStore.getState();
       completeExercise("ex1");
@@ -242,12 +245,14 @@ describe("WorkoutStore", () => {
       const exercise2 = createTestExercise("ex2", "Squat");
       addExercise(exercise1);
       addExercise(exercise2);
-      updateExerciseOrder("ex2", 0);
       const { currentWorkout } = useWorkoutStore.getState();
-      expect(currentWorkout?.exercises[0].name).toBe("Squat");
-      expect(currentWorkout?.exercises[0].order).toBe(0);
-      expect(currentWorkout?.exercises[1].name).toBe("Bench Press");
-      expect(currentWorkout?.exercises[1].order).toBe(1);
+      const squatID = currentWorkout?.exercises[1]._id!;
+      updateExerciseOrder(squatID, 0);
+      const updated = useWorkoutStore.getState();
+      expect(updated.currentWorkout?.exercises[0].name).toBe("Squat");
+      expect(updated.currentWorkout?.exercises[0].order).toBe(0);
+      expect(updated.currentWorkout?.exercises[1].name).toBe("Bench Press");
+      expect(updated.currentWorkout?.exercises[1].order).toBe(1);
     });
   });
 
@@ -258,10 +263,14 @@ describe("WorkoutStore", () => {
       createWorkout("Test Workout");
       const exercise = createTestExercise("ex1", "Bench Press");
       addExercise(exercise);
-      updateExerciseSettings("ex1", { splitWeight: true, barWeight: 20 });
       const { currentWorkout } = useWorkoutStore.getState();
-      expect(currentWorkout?.exercises[0].settings?.splitWeight).toBe(true);
-      expect(currentWorkout?.exercises[0].settings?.barWeight).toBe(20);
+      const exerciseID = currentWorkout?.exercises[0]._id!;
+      updateExerciseSettings(exerciseID, { splitWeight: true, barWeight: 20 });
+      const updated = useWorkoutStore.getState();
+      expect(updated.currentWorkout?.exercises[0].settings?.splitWeight).toBe(
+        true,
+      );
+      expect(updated.currentWorkout?.exercises[0].settings?.barWeight).toBe(20);
     });
   });
 
@@ -310,9 +319,11 @@ describe("WorkoutStore", () => {
       createWorkout("Test Workout");
       const exercise = createTestExercise("ex1", "Bench Press");
       addExercise(exercise);
-      updateExerciseNotes("ex1", "Focus on form");
       const { currentWorkout } = useWorkoutStore.getState();
-      expect(currentWorkout?.exercises[0].notes).toBe("Focus on form");
+      const exerciseID = currentWorkout?.exercises[0]._id!;
+      updateExerciseNotes(exerciseID, "Focus on form");
+      const updated = useWorkoutStore.getState();
+      expect(updated.currentWorkout?.exercises[0].notes).toBe("Focus on form");
     });
   });
 

@@ -354,14 +354,14 @@ export default function HistoryPage() {
             {/* Exercise List */}
             <div className="space-y-2">
               {displayItem.exercises.map((exercise) => {
-                const isExpanded = expandedItems.includes(exercise.id);
+                const isExpanded = expandedItems.includes(exercise._id);
                 const reps = exercise.sets.map((s) => s.reps);
                 const minReps = Math.min(...reps);
                 const maxReps = Math.max(...reps);
 
                 return (
                   <div
-                    key={exercise.id}
+                    key={exercise._id}
                     className={`
                       rounded-sm border transition-all
                       ${
@@ -372,7 +372,7 @@ export default function HistoryPage() {
                     `}
                   >
                     <button
-                      onClick={() => toggleExpand(exercise.id)}
+                      onClick={() => toggleExpand(exercise._id)}
                       className="w-full flex items-center justify-between p-3 transition"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">

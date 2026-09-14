@@ -27,8 +27,8 @@ export default function ExerciseList() {
 
         return (
           <Link
-            key={exercise.id}
-            href={`/workout/exercise/${exercise.id}`}
+            key={exercise._id}
+            href={`/workout/exercise/${exercise.slug}`}
             className={`
               block rounded-sm p-4 border transition-all shadow-lg shadow-black/20
               ${

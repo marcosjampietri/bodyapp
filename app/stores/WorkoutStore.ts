@@ -2,7 +2,12 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { Exercise } from "../db/models/Exercises";
 
-export interface WorkoutExercise extends Exercise {
+export interface WorkoutExercise {
+  _id: string; // references the catalog exercise id
+  name: string; // display snapshot
+  slug: string; // display snapshot
+  primaryMuscles: string[]; // display snapshot
+  equipment: string; // display snapshot
   sets: WorkoutSet[];
   notes?: string;
   completed: boolean;
@@ -49,7 +54,7 @@ interface WorkoutState {
 
   // Actions
   createWorkout: (name: string) => void;
-  addExercise: (exercise: Exercise) => void;
+  addExercise: (exercise: Exercise | WorkoutExercise) => void;
   removeExercise: (exerciseId: string) => void;
   updateExerciseOrder: (exerciseId: string, newOrder: number) => void;
   addSet: (exerciseId: string) => void;
@@ -99,7 +104,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           if (!state.currentWorkout) return state;
 
           const exercises = state.currentWorkout.exercises.map((e) => {
-            if (e.id === exerciseId) {
+            if (e._id === exerciseId) {
               return {
                 ...e,
                 settings: {
@@ -135,25 +140,29 @@ export const useWorkoutStore = create<WorkoutState>()(
       },
 
       // Add an exercise to the current workout
-      addExercise: (exercise: Exercise) => {
+      addExercise: (exercise: Exercise | WorkoutExercise) => {
         const { currentWorkout, createWorkout } = get();
 
-        // Create workout if none exists
         let workout = currentWorkout;
         if (!workout) {
           createWorkout("My Workout");
           workout = get().currentWorkout;
-          if (!workout) return; // Safety check
+          if (!workout) return;
         }
 
         const exerciseAlreadyIn = workout.exercises.find(
-          (x) => x._id == exercise._id,
+          (x) => x._id === exercise._id,
         );
-
         if (exerciseAlreadyIn) return;
 
+        const slug = "slug" in exercise ? exercise.slug : exercise.id;
+
         const newExercise: WorkoutExercise = {
-          ...exercise,
+          _id: exercise._id,
+          name: exercise.name,
+          slug,
+          primaryMuscles: exercise.primaryMuscles,
+          equipment: exercise.equipment,
           sets: [
             {
               id: generateId(),
@@ -174,9 +183,8 @@ export const useWorkoutStore = create<WorkoutState>()(
             exercises: [...workout.exercises, newExercise],
           },
         });
-
-        // console.log("exerciseAdded", exercise, "workout", workout);
       },
+
       // Remove an exercise
       removeExercise: (exerciseId: string) => {
         const { currentWorkout } = get();
@@ -210,7 +218,7 @@ export const useWorkoutStore = create<WorkoutState>()(
         if (!currentWorkout) return;
 
         const exercises = [...currentWorkout.exercises];
-        const index = exercises.findIndex((e) => e.id === exerciseId);
+        const index = exercises.findIndex((e) => e._id === exerciseId);
         if (index === -1) return;
 
         const [moved] = exercises.splice(index, 1);
@@ -291,7 +299,7 @@ export const useWorkoutStore = create<WorkoutState>()(
         if (!currentWorkout) return;
 
         const exercises = currentWorkout.exercises.map((e) => {
-          if (e.id === exerciseId) {
+          if (e._id === exerciseId) {
             return {
               ...e,
               sets: e.sets.map((s) => {
@@ -319,7 +327,7 @@ export const useWorkoutStore = create<WorkoutState>()(
         if (!currentWorkout) return;
 
         const exercises = currentWorkout.exercises.map((e) => {
-          if (e.id === exerciseId) {
+          if (e._id === exerciseId) {
             return { ...e, completed: !e.completed };
           }
           return e;
@@ -378,7 +386,7 @@ export const useWorkoutStore = create<WorkoutState>()(
         if (!currentWorkout) return;
 
         const exercises = currentWorkout.exercises.map((e) => {
-          if (e.id === exerciseId) {
+          if (e._id === exerciseId) {
             return { ...e, notes };
           }
           return e;
