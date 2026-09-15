@@ -1,23 +1,20 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useWorkoutStore } from "@/app/stores/WorkoutStore";
-import { useState } from "react";
-import Link from "next/link";
-import { useTheme } from "@/app/context/ThemeContext";
 import { ThemeToggle } from "@/app/components/theme/ThemeToggle";
-import { ArrowLeft, Settings, Plus } from "lucide-react";
-import SetInput from "./components/SetInput";
-import SettingsModal from "./components/SettingsModal";
-import Stopwatch from "./components/Stopwatch";
+import { useTheme } from "@/app/context/ThemeContext";
+import { useWorkoutStore } from "@/app/stores/WorkoutStore";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import History from "./components/History";
-import Controls from "./components/Controls";
+import SetInput from "./components/SetInput";
+import SetCounterBar from "./components/SetCounterBar";
+import Stopwatch from "./components/Stopwatch";
 
 export default function ExercisePage() {
   const params = useParams();
   const exerciseSlug = params.slug as string;
-  const { currentWorkout, addSet, removeSet } = useWorkoutStore();
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const { currentWorkout } = useWorkoutStore();
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
@@ -65,74 +62,15 @@ export default function ExercisePage() {
 
           <div className="flex items-center gap-2 shrink-0">
             <ThemeToggle />
-            <button
-              onClick={() => setSettingsOpen(!settingsOpen)}
-              className={`w-10 h-10 rounded-sm flex items-center justify-center transition ${
-                isDark
-                  ? "bg-zinc-900 border border-orange-900/30 hover:border-orange-700/50"
-                  : "bg-white border border-orange-200 hover:border-orange-300"
-              }`}
-            >
-              <Settings
-                className={`w-5 h-5 ${isDark ? "text-orange-400" : "text-orange-600"}`}
-              />
-            </button>
           </div>
         </div>
 
-        <SettingsModal
-          isOpen={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
-          exerciseId={exercise._id}
-        />
+        <SetCounterBar exerciseId={exercise._id} />
 
         <SetInput exerciseId={exercise._id} />
 
-        {/* Add Set – dashed line */}
-        <button
-          onClick={() => addSet(exercise._id)}
-          className={`
-            w-full py-3 rounded-sm border-2 border-dashed transition flex items-center justify-center gap-2
-            ${
-              isDark
-                ? "border-orange-600 text-orange-400 "
-                : "border-red-500 text-red-500 "
-            }
-          `}
-        >
-          <Plus className="w-4 h-4" />
-          <span className="text-xs font-black uppercase tracking-wider">
-            Add Set
-          </span>
-        </button>
-        <button
-          onClick={() => {
-            if (exercise.sets.length > 1) {
-              const lastSet = exercise.sets[exercise.sets.length - 1];
-              removeSet(exercise._id, lastSet.id);
-            }
-          }}
-          className={`
-            w-full py-3 rounded-sm border-2 border-dashed transition flex items-center justify-center gap-2
-            ${
-              isDark
-                ? "border-orange-600 text-orange-400 "
-                : "border-red-500 text-red-500 "
-            }
-          `}
-        >
-          <Plus className="w-4 h-4" />
-          <span className="text-xs font-black uppercase tracking-wider">
-            Remove Set
-          </span>
-        </button>
-
-        {/* <Controls exerciseId={exercise._id} /> */}
-
-        {/* Stopwatch – standalone rest timer */}
         <Stopwatch />
 
-        {/* History */}
         <History exerciseID={exercise._id} />
       </div>
     </div>

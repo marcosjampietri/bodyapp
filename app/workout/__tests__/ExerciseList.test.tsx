@@ -19,6 +19,7 @@ describe("ExerciseList", () => {
   const mockExercises = [
     {
       id: "ex1",
+      _id: "ex1",
       name: "Bench Press",
       sets: [
         { id: "s1", weight: 100, reps: 10, completed: false },
@@ -31,6 +32,7 @@ describe("ExerciseList", () => {
     },
     {
       id: "ex2",
+      _id: "ex2",
       name: "Squat",
       sets: [{ id: "s3", weight: 140, reps: 5, completed: false }],
       primaryMuscles: ["legs"],
@@ -77,7 +79,9 @@ describe("ExerciseList", () => {
     });
 
     renderWithTheme(<ExerciseList />);
-    expect(screen.getByText("✓ Done")).toBeInTheDocument();
+    expect(
+      screen.getByTestId(`status-complete-${completedExercise._id}`),
+    ).toBeInTheDocument();
   });
 
   test("renders empty div when no current workout", () => {

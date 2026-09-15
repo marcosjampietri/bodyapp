@@ -2,6 +2,11 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { Exercise } from "../db/models/Exercises";
 
+export interface WorkExSetSettings {
+  splitWeight?: boolean;
+  barWeight?: number;
+  barEnabled?: boolean;
+}
 export interface WorkoutExercise {
   _id: string; // references the catalog exercise id
   name: string; // display snapshot
@@ -12,10 +17,7 @@ export interface WorkoutExercise {
   notes?: string;
   completed: boolean;
   order: number;
-  settings: {
-    splitWeight?: boolean;
-    barWeight?: number;
-  };
+  settings: WorkExSetSettings;
 }
 
 export interface WorkoutSet {
@@ -74,7 +76,7 @@ interface WorkoutState {
   clearCurrentWorkout: () => void;
   updateExerciseSettings: (
     exerciseId: string,
-    settings: { splitWeight?: boolean; barWeight?: number },
+    settings: WorkExSetSettings,
   ) => void;
 
   // Sync actions
@@ -156,6 +158,8 @@ export const useWorkoutStore = create<WorkoutState>()(
         if (exerciseAlreadyIn) return;
 
         const slug = "slug" in exercise ? exercise.slug : exercise.id;
+        const settings =
+          "settings" in exercise && exercise.settings ? exercise.settings : {};
 
         const newExercise: WorkoutExercise = {
           _id: exercise._id,
@@ -171,7 +175,7 @@ export const useWorkoutStore = create<WorkoutState>()(
               completed: false,
             },
           ],
-          settings: {},
+          settings,
           completed: false,
           order: workout.exercises.length,
           notes: "",
@@ -440,7 +444,7 @@ export const useWorkoutStore = create<WorkoutState>()(
         set({ isLoading: true });
 
         try {
-          const response = await fetch("/api/workouts", {
+          const response = await fetch("/api/workouts?limit=50", {
             credentials: "include",
           });
 

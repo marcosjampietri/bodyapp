@@ -42,7 +42,7 @@ export default function SetInput({ exerciseId }: SetInputProps) {
   };
 
   return (
-    <div className="space-y-2 mb-4  max-h-125 overflow-y-scroll">
+    <div className="space-y-2 mb-4  max-h-80 overflow-y-scroll">
       {exercise.sets.map((set, index) => {
         const state = getSetState(index);
         const isEditable = state === "editable";
@@ -157,10 +157,10 @@ export default function SetInput({ exerciseId }: SetInputProps) {
             </div>
 
             {/* Weight Input + Total */}
-            <div className={`${hasSettings ? "col-span-9" : "col-span-6"}`}>
+            <div className={`${hasSettings ? "col-span-10" : "col-span-6"}`}>
               <div
                 className={`
-                  flex items-center rounded-sm overflow-hidden
+                  flex items-center rounded-sm 
                   ${
                     isDark
                       ? "bg-zinc-800 border border-zinc-700 focus-within:border-orange-500"

@@ -107,7 +107,7 @@ describe("ExerciseHistory", () => {
     const expandButtons = screen.getAllByRole("button");
     fireEvent.click(expandButtons[0]);
 
-    expect(screen.getByText("105 KG")).toBeInTheDocument();
+    expect(screen.getByText("100 KG")).toBeInTheDocument();
   });
 
   test("collapses sets when clicked again", () => {
@@ -119,7 +119,7 @@ describe("ExerciseHistory", () => {
 
     const expandButtons = screen.getAllByRole("button");
     fireEvent.click(expandButtons[0]);
-    expect(screen.getByText("105 KG")).toBeInTheDocument();
+    expect(screen.getByText("100 KG")).toBeInTheDocument();
     fireEvent.click(expandButtons[0]);
 
     expect(screen.queryByText("105 KG")).not.toBeInTheDocument();

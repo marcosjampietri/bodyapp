@@ -36,8 +36,8 @@ export default function HistoryPage() {
     (hI) => hI.id === selectedWorkoutId || hI._id === selectedWorkoutId,
   );
 
-  const sortedHistory = [...workoutHistory].sort((a, b) =>
-    dayjs(b.date).isBefore(dayjs(a.date)) ? -1 : 1,
+  const sortedHistory = [...workoutHistory].sort(
+    (a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf(),
   );
 
   const markedDates = sortedHistory.reduce(
@@ -55,6 +55,20 @@ export default function HistoryPage() {
         ? prev.filter((id) => id !== exerciseId)
         : [...prev, exerciseId],
     );
+  };
+
+  const getTotal = (
+    weight: number | string,
+    settings: {
+      splitWeight?: boolean;
+      barEnabled?: boolean;
+      barWeight?: number;
+    },
+  ) => {
+    const w = Number(weight) || 0;
+    const split = settings?.splitWeight ? 2 : 1;
+    const bar = settings?.barEnabled ? (settings.barWeight ?? 0) : 0;
+    return w * split + bar;
   };
 
   const handleRedoWorkout = () => {
@@ -457,7 +471,7 @@ export default function HistoryPage() {
                                   isDark ? "text-white" : "text-zinc-800"
                                 }`}
                               >
-                                {set.weight}
+                                {getTotal(set.weight, exercise.settings || {})}
                               </span>
                               <span
                                 className={`text-[10px] font-bold uppercase tracking-wider ${

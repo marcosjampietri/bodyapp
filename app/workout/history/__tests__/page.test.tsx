@@ -20,11 +20,13 @@ describe("HistoryPage", () => {
   const mockWorkoutHistory = [
     {
       id: "w1",
+      _id: "w1",
       name: "Workout 1",
       date: new Date("2024-01-15T10:00:00"),
       exercises: [
         {
           id: "ex1",
+          _id: "ex1",
           name: "Bench Press",
           sets: [
             { id: "s1", weight: 100, reps: 10, completed: true },
@@ -35,6 +37,7 @@ describe("HistoryPage", () => {
         },
         {
           id: "ex2",
+          _id: "ex2",
           name: "Squat",
           sets: [{ id: "s3", weight: 140, reps: 5, completed: true }],
           completed: true,
@@ -46,6 +49,7 @@ describe("HistoryPage", () => {
     },
     {
       id: "w2",
+      _id: "w2",
       name: "Workout 2",
       date: new Date("2024-01-14T15:30:00"),
       exercises: [

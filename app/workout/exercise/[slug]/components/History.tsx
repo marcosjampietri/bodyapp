@@ -25,8 +25,22 @@ export default function History({ exerciseID }: HistoryProps) {
         exercise,
         workoutName: workout.name,
       };
-    })
-    .reverse();
+    });
+  // .reverse();
+
+  const getTotal = (
+    weight: number | string,
+    settings: {
+      splitWeight?: boolean;
+      barEnabled?: boolean;
+      barWeight?: number;
+    },
+  ) => {
+    const w = Number(weight) || 0;
+    const split = settings?.splitWeight ? 2 : 1;
+    const bar = settings?.barEnabled ? (settings.barWeight ?? 0) : 0;
+    return w * split + bar;
+  };
 
   const toggleExpand = (date: string) => {
     setExpandedItems((prev) =>
@@ -143,7 +157,7 @@ export default function History({ exerciseID }: HistoryProps) {
                         <span
                           className={isDark ? "text-white" : "text-zinc-800"}
                         >
-                          {set.weight} KG
+                          {getTotal(set.weight, exercise.settings || {})} KG
                         </span>
                       </div>
                       {set.rpe && (
