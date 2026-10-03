@@ -16,9 +16,14 @@ export default function SetInput({ exerciseId }: SetInputProps) {
   const exercise = currentWorkout?.exercises.find((e) => e._id === exerciseId);
   if (!exercise) return null;
 
-  const settings = exercise.settings || { splitWeight: false, barWeight: 0 };
-  const { splitWeight, barWeight } = settings;
-  const hasSettings = splitWeight || Number(barWeight) > 0;
+  const settings = exercise.settings || {
+    splitWeight: false,
+    barEnabled: false,
+    barWeight: 0,
+  };
+  const { splitWeight, barEnabled, barWeight } = settings;
+  const effectiveBar = barEnabled ? barWeight || 0 : 0;
+  const hasSettings = splitWeight || barEnabled;
 
   const isSetComplete = (set: any) =>
     Number(set.weight) > 0 && Number(set.reps) > 0;
@@ -49,12 +54,11 @@ export default function SetInput({ exerciseId }: SetInputProps) {
         const isComplete = state === "complete";
         const isLocked = state === "locked";
 
-        const valueReps = set.reps?.toString() || "";
-        const valueWeight = set.weight?.toString() || "";
+        const valueReps = Number(set.reps) > 0 ? String(set.reps) : "";
+        const valueWeight = Number(set.weight) > 0 ? String(set.weight) : "";
 
         const totalWeight =
-          Number(set.weight) * (splitWeight ? 2 : 1) + (barWeight || 0);
-        const showTotal = splitWeight || (barWeight && barWeight > 0);
+          Number(set.weight) * (splitWeight ? 2 : 1) + effectiveBar;
 
         return (
           <div
@@ -107,7 +111,8 @@ export default function SetInput({ exerciseId }: SetInputProps) {
                 type="text"
                 value={valueReps}
                 inputMode="numeric"
-                maxLength={5}
+                maxLength={3}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => {
                   const val = e.target.value;
                   if (val === "" || /^\d+$/.test(val)) {
@@ -174,6 +179,7 @@ export default function SetInput({ exerciseId }: SetInputProps) {
                   value={valueWeight}
                   inputMode="decimal"
                   maxLength={valueWeight.includes(".") ? 5 : 4}
+                  onFocus={(e) => e.target.select()}
                   onChange={(e) => {
                     const input = e.target.value;
 
@@ -203,47 +209,45 @@ export default function SetInput({ exerciseId }: SetInputProps) {
                   placeholder={isLocked ? "—" : "Weight"}
                   disabled={isLocked}
                   className={`
-                    ${hasSettings ? "w-[85.5]" : "w-[127.3]"}
-                     px-1 py-2 text-center text-sm font-black
-                    font-michroma
-                    bg-transparent
+                     min-w-0 px-1 py-2 text-center text-sm font-black
+                    font-michroma bg-transparent
                     ${isDark ? "text-white" : "text-zinc-800"}
                     focus:outline-none
                     ${isLocked ? "opacity-50 cursor-not-allowed" : ""}
                   `}
                 />
 
-                <div className="h-6 w-px bg-gray-400/30 shrink-0" />
+                {hasSettings && (
+                  <>
+                    <div className="h-6 w-px bg-gray-400/30 shrink-0" />
 
-                {/* WITH = w-[125px] */}
-                <div className="flex w-31.25 items-center gap-0.5 px-1 justify-between">
-                  <div className="flex flex-col">
-                    {splitWeight && (
-                      <span
-                        className={`text-[10px] font-michroma  ${isDark ? "text-orange-400" : "text-red-500"}`}
-                      >
-                        ×2
-                      </span>
-                    )}
-                    {Number(barWeight) > 0 && (
-                      <span
-                        className={`text-[10px] font-michroma ${isDark ? "text-orange-400" : "text-red-500"}`}
-                      >
-                        +{barWeight}
-                      </span>
-                    )}
-                  </div>
-                  {showTotal && (
-                    <div
-                      className={`text-sm font-black font-michroma truncate ${
-                        isDark ? "text-orange-400" : "text-red-600"
-                      }`}
-                    >
-                      {" "}
-                      = {totalWeight}
+                    <div className="flex max-w-30.5 min-w-1/2 items-center gap-1 px-1 shrink-0">
+                      <div className="flex flex-col">
+                        {splitWeight && (
+                          <span
+                            className={`text-[10px] font-michroma ${isDark ? "text-orange-400" : "text-red-500"}`}
+                          >
+                            ×2
+                          </span>
+                        )}
+                        {barEnabled && barWeight! > 0 && (
+                          <span
+                            className={`text-[10px] font-michroma ${isDark ? "text-orange-400" : "text-red-500"}`}
+                          >
+                            +{barWeight}
+                          </span>
+                        )}
+                      </div>
+                      {Number(set.weight) > 0 && (
+                        <div
+                          className={`text-sm font-black font-michroma ${isDark ? "text-orange-400" : "text-red-600"}`}
+                        >
+                          = {totalWeight}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             </div>
 

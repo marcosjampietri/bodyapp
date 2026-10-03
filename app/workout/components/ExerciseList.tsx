@@ -55,19 +55,19 @@ export default function ExerciseList() {
           {editMode ? (
             <>
               <CheckIcon className="w-3 h-3" />
-              Done
+              DONE
             </>
           ) : (
             <>
               <Pencil className="w-3 h-3" />
-              Reorder
+              EDIT
             </>
           )}
         </button>
       </div>
 
       {/* List */}
-      <div className="space-y-3">
+      <div className="space-y-3 overflow-hidden">
         {exercises.map((exercise, index) => {
           const isComplete = exercise.sets.every(
             (s) => Number(s.weight) > 0 && s.reps > 0,
@@ -130,7 +130,7 @@ export default function ExerciseList() {
 
               <div className="flex-1 min-w-0">
                 <h3
-                  className={`font-black text-sm uppercase tracking-wider truncate ${
+                  className={`font-black text-xs uppercase tracking-wider  ${
                     isDark ? "text-white" : "text-zinc-800"
                   }`}
                 >
@@ -145,7 +145,7 @@ export default function ExerciseList() {
                   </span>
                   <span>•</span>
                   <span className="truncate">
-                    {exercise.equipment || "Body"}
+                    {exercise.primaryMuscles || ""}
                   </span>
                 </div>
               </div>

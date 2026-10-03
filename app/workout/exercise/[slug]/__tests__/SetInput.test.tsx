@@ -140,7 +140,7 @@ describe("SetInput", () => {
     const exerciseWithSplit = {
       ...mockExercise,
       sets: [{ id: "set1", weight: 50, reps: 10, completed: false }],
-      settings: { splitWeight: true, barWeight: 20 },
+      settings: { splitWeight: true, barEnabled: true, barWeight: 20 },
     };
 
     (useWorkoutStore as unknown as jest.Mock).mockImplementation((selector) => {
