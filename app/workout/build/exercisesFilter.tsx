@@ -140,27 +140,41 @@ export default function ExerciseFilters({
   // Handlers
   // -------------------------------------------------------------------------
 
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get("search") || initialFilters.search || "",
+  );
+
   const handleFilterChange = (e: any) => {
     const { name, value } = e;
     setFilters((prev) => ({ ...prev, [name]: value, page: "1" }));
   };
 
-  const handleSearch = () => {
+  // Typing → wait 400ms of silence → commit to filters
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((prev) =>
+        prev.search === searchInput
+          ? prev
+          : { ...prev, search: searchInput, page: "1" },
+      );
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // filters → URL (no scroll jump)
+  useEffect(() => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== "") {
-        params.append(key, value);
-      }
+      if (value && value !== "") params.append(key, value);
     });
-    router.replace(`${pathname}?${params.toString()}`);
-  };
-
-  useEffect(() => {
-    handleSearch();
-  }, [filters]);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [filters, pathname, router]);
 
   const handleClearFilters = () => {
-    const emptyFilters: FilterOptions = {
+    setSearchInput("");
+    setFilters({
       primaryMuscles: "",
       equipment: "",
       mechanic: "",
@@ -169,9 +183,7 @@ export default function ExerciseFilters({
       category: "",
       limit: "20",
       page: "1",
-    };
-    setFilters(emptyFilters);
-    router.push(pathname);
+    });
   };
 
   // -------------------------------------------------------------------------
@@ -289,10 +301,8 @@ export default function ExerciseFilters({
             id="search"
             name="search"
             type="text"
-            value={filters.search || ""}
-            onChange={(e) =>
-              handleFilterChange({ name: e.target.name, value: e.target.value })
-            }
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search exercises..."
             className={inputClass}
           />
