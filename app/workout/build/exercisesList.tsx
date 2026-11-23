@@ -28,7 +28,7 @@ export default function ExercisesList({
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="space-y-3 pb-20">
         {exercises.map((exercise) => {
           const added = isExerciseAdded(exercise);
           return (
